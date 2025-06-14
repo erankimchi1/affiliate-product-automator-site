@@ -317,6 +317,18 @@ const Index = () => {
     }
   }, [darkMode]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key === 'A') {
+        event.preventDefault();
+        handleAdminClick();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [adminAuth]);
+
   const categories = ["all", ...Array.from(new Set(products.map(p => p.category)))];
   const featuredProducts = products.filter(p => p.featured);
 
@@ -387,6 +399,7 @@ const Index = () => {
                 variant="outline" 
                 onClick={handleAdminClick}
                 className="flex items-center gap-2"
+                title="Admin Panel (Ctrl+Shift+A)"
               >
                 <Settings size={16} />
                 Admin

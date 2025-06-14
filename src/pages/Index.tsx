@@ -1,16 +1,9 @@
-
 import { useState, useEffect } from "react";
-import { ProductCard } from "@/components/ProductCard";
-import { SearchBar } from "@/components/SearchBar";
-import { CategoryFilter } from "@/components/CategoryFilter";
-import { FeaturedSection } from "@/components/FeaturedSection";
-import { ExclusiveDeals } from "@/components/ExclusiveDeals";
+import { Header } from "@/components/Header";
+import { MainContent } from "@/components/MainContent";
+import { Footer } from "@/components/Footer";
 import { AdminPanel } from "@/components/AdminPanel";
 import { WishlistPanel } from "@/components/WishlistPanel";
-import { BlogSection } from "@/components/BlogSection";
-import { Pagination } from "@/components/ui/pagination";
-import { Button } from "@/components/ui/button";
-import { Settings, Heart, Sun, Moon } from "lucide-react";
 import { Product } from "@/types/Product";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -26,7 +19,6 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showAdmin, setShowAdmin] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [darkMode, setDarkMode] = useLocalStorage("darkMode", false);
   const [wishlist, setWishlist] = useLocalStorage("wishlist", []);
   const [showAdminButton, setShowAdminButton] = useState(() => {
@@ -35,8 +27,6 @@ const Index = () => {
     }
     return false;
   });
-  
-  const productsPerPage = 8;
 
   // Sample products with enhanced data
   useEffect(() => {
@@ -307,7 +297,6 @@ const Index = () => {
     }
     
     setFilteredProducts(filtered);
-    setCurrentPage(1);
   }, [products, selectedCategory, searchQuery]);
 
   useEffect(() => {
@@ -339,14 +328,6 @@ const Index = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showAdminButton]);
 
-  const categories = ["all", ...Array.from(new Set(products.map(p => p.category)))];
-  const featuredProducts = products.filter(p => p.featured);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
-
   // SEO Meta tags
   useEffect(() => {
     document.title = "AffiliateHub Pro - Best Deals from Amazon, eBay & AliExpress";
@@ -375,45 +356,15 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AffiliateHub Pro</h1>
-              <p className="text-gray-600 dark:text-gray-300">Discover amazing deals from top retailers worldwide</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setDarkMode(!darkMode)}
-                className="flex items-center gap-2"
-              >
-                {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowWishlist(!showWishlist)}
-                className="flex items-center gap-2"
-              >
-                <Heart size={16} />
-                Wishlist ({wishlist.length})
-              </Button>
-              {showAdminButton && (
-                <Button 
-                  variant="outline" 
-                  onClick={handleAdminClick}
-                  className="flex items-center gap-2"
-                  title="Admin Panel (Ctrl+Shift+A to toggle visibility)"
-                >
-                  <Settings size={16} />
-                  Admin
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        wishlist={wishlist}
+        setShowWishlist={setShowWishlist}
+        showWishlist={showWishlist}
+        showAdminButton={showAdminButton}
+        onAdminClick={handleAdminClick}
+      />
 
       {/* Admin Panel */}
       {showAdmin && showAdminButton && (
@@ -435,116 +386,19 @@ const Index = () => {
         />
       )}
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Exclusive Deals */}
-        <ExclusiveDeals products={products} wishlist={wishlist} setWishlist={setWishlist} />
+      <MainContent
+        products={products}
+        filteredProducts={filteredProducts}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        wishlist={wishlist}
+        setWishlist={setWishlist}
+      />
 
-        {/* Featured Products */}
-        {featuredProducts.length > 0 && (
-          <FeaturedSection products={featuredProducts} wishlist={wishlist} setWishlist={setWishlist} />
-        )}
+      <Footer />
 
-        {/* Search and Filter Section */}
-        <div className="mb-8 space-y-4">
-          <SearchBar 
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
-          <CategoryFilter 
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-          />
-        </div>
-
-        {/* Products Grid */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {selectedCategory === "all" ? "All Products" : selectedCategory} 
-              <span className="text-gray-500 ml-2">({filteredProducts.length})</span>
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {paginatedProducts.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                wishlist={wishlist}
-                setWishlist={setWishlist}
-                allProducts={products}
-              />
-            ))}
-          </div>
-
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-gray-500 dark:text-gray-400 text-lg">No products found matching your criteria.</p>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-8">
-              <Pagination>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    onClick={() => setCurrentPage(page)}
-                    className="mx-1"
-                  >
-                    {page}
-                  </Button>
-                ))}
-              </Pagination>
-            </div>
-          )}
-        </div>
-
-        {/* Blog Section */}
-        <BlogSection />
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">AffiliateHub Pro</h3>
-              <p className="text-gray-400">Find the best deals from Amazon, AliExpress, and eBay all in one place. Smart shopping made simple with exclusive offers and price comparisons.</p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Categories</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Tech & Electronics</li>
-                <li>Home & Kitchen</li>
-                <li>Fashion & Beauty</li>
-                <li>Tools & Hardware</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Features</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Price Comparison</li>
-                <li>Exclusive Deals</li>
-                <li>Product Recommendations</li>
-                <li>Mobile Optimized</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Legal</h4>
-              <p className="text-gray-400 text-sm">
-                This site contains affiliate links. We may earn a commission when you purchase through our links at no additional cost to you.
-              </p>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Scroll to Top */}
       <ScrollToTop />
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { SearchBar } from "@/components/SearchBar";
@@ -16,6 +17,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { generateSEODescription, generateProductKeywords } from "@/utils/seoGenerator";
 
 const ADMIN_VISIBILITY_KEY = "showAdminButton";
+const ADMIN_PASSWORD = "SecureAdmin2024!";
 
 const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -357,7 +359,12 @@ const Index = () => {
   }, []);
 
   const handleAdminClick = () => {
-    setShowAdmin(true);
+    const password = window.prompt("🔐 Enter admin password:");
+    if (password === ADMIN_PASSWORD) {
+      setShowAdmin(true);
+    } else if (password !== null) {
+      alert("❌ Incorrect password. Access denied.");
+    }
   };
 
   const handleAdminLogout = () => {

@@ -1,5 +1,6 @@
 
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CategoryFilterProps {
   categories: string[];
@@ -8,6 +9,13 @@ interface CategoryFilterProps {
 }
 
 export const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }: CategoryFilterProps) => {
+  const { t } = useLanguage();
+
+  const getCategoryLabel = (category: string) => {
+    if (category === "all") return t('category.all');
+    return t(`category.${category.toLowerCase()}`) || category;
+  };
+
   return (
     <div className="flex flex-wrap gap-2 justify-center">
       {categories.map((category) => (
@@ -21,7 +29,7 @@ export const CategoryFilter = ({ categories, selectedCategory, onCategoryChange 
           }`}
           onClick={() => onCategoryChange(category)}
         >
-          {category === "all" ? "All Categories" : category}
+          {getCategoryLabel(category)}
         </Badge>
       ))}
     </div>

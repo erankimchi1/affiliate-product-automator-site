@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Calendar } from "lucide-react";
 import { BlogPost } from "@/types/Product";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const BlogSection = () => {
+  const { t } = useLanguage();
+
   const blogPosts: BlogPost[] = [
     {
       id: "1",
@@ -35,8 +38,8 @@ export const BlogSection = () => {
   return (
     <section className="mb-12">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Latest Deal Guides</h2>
-        <p className="text-gray-600 dark:text-gray-300">Expert tips and curated lists to help you save more</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('main.latestGuides')}</h2>
+        <p className="text-gray-600 dark:text-gray-300">{t('main.guidesSubtitle')}</p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -67,7 +70,7 @@ export const BlogSection = () => {
                 className="w-full group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20"
                 onClick={() => window.open(post.link, '_blank')}
               >
-                Read More
+                {t('common.readMore')}
                 <ExternalLink size={14} className="ml-2" />
               </Button>
             </CardContent>

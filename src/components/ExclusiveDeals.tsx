@@ -1,6 +1,7 @@
 
 import { ProductCard } from "./ProductCard";
 import { Product } from "@/types/Product";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ExclusiveDealsProps {
   products: Product[];
@@ -9,6 +10,7 @@ interface ExclusiveDealsProps {
 }
 
 export const ExclusiveDeals = ({ products, wishlist, setWishlist }: ExclusiveDealsProps) => {
+  const { t } = useLanguage();
   const exclusiveProducts = products.filter(p => p.isExclusive || p.isEarlyAccess);
 
   if (exclusiveProducts.length === 0) return null;
@@ -17,10 +19,10 @@ export const ExclusiveDeals = ({ products, wishlist, setWishlist }: ExclusiveDea
     <section className="mb-12">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          ⭐ Exclusive & Early Access Deals
+          ⭐ {t('main.exclusiveDeals')}
         </h2>
         <p className="text-gray-600 dark:text-gray-300">
-          Limited-time exclusive offers just for you!
+          {t('main.exclusiveSubtitle')}
         </p>
       </div>
       

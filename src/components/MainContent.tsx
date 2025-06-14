@@ -9,6 +9,7 @@ import { BlogSection } from "@/components/BlogSection";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/Product";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MainContentProps {
   products: Product[];
@@ -33,6 +34,7 @@ export const MainContent = ({
 }: MainContentProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
+  const { t } = useLanguage();
 
   const categories = ["all", ...Array.from(new Set(products.map(p => p.category)))];
   const featuredProducts = products.filter(p => p.featured);
@@ -69,7 +71,7 @@ export const MainContent = ({
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {selectedCategory === "all" ? "All Products" : selectedCategory} 
+            {selectedCategory === "all" ? t('main.allProducts') : t(`category.${selectedCategory.toLowerCase()}`)} 
             <span className="text-gray-500 ml-2">({filteredProducts.length})</span>
           </h2>
         </div>
@@ -88,7 +90,7 @@ export const MainContent = ({
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-gray-500 dark:text-gray-400 text-lg">No products found matching your criteria.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">{t('search.noResults')}</p>
           </div>
         )}
 

@@ -1,3 +1,4 @@
+
 import { Product } from "@/types/Product";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -10,11 +11,12 @@ interface ExtractedProductData {
   category: string;
   platform: 'amazon' | 'aliexpress' | 'ebay';
   rating?: number;
+  brand?: string;
 }
 
 export class ProductExtractor {
   static async extractFromUrl(affiliateUrl: string): Promise<Partial<ExtractedProductData>> {
-    console.log("Starting real product extraction for URL:", affiliateUrl);
+    console.log("Starting enhanced product extraction for URL:", affiliateUrl);
     
     try {
       // Call the Supabase Edge Function for real scraping
@@ -27,9 +29,9 @@ export class ProductExtractor {
         throw new Error(`Scraping failed: ${error.message}`);
       }
 
-      if (!data.success) {
-        console.error("Scraping failed:", data.error);
-        throw new Error(data.error || "Failed to scrape product");
+      if (!data || !data.success) {
+        console.error("Scraping failed:", data?.error);
+        throw new Error(data?.error || "Failed to scrape product");
       }
 
       console.log("Successfully scraped product:", data.product);
@@ -43,16 +45,17 @@ export class ProductExtractor {
         description: data.product.description,
         category: data.product.category,
         platform: data.product.platform,
-        rating: data.product.rating
+        rating: data.product.rating,
+        brand: data.product.brand
       };
 
     } catch (error) {
-      console.error("Error in product extraction:", error);
+      console.error("Error in enhanced product extraction:", error);
       
-      // Fallback to mock data if real scraping fails
-      console.log("Falling back to mock data generation");
+      // Fallback to enhanced mock data if real scraping fails
+      console.log("Falling back to enhanced mock data generation");
       const platform = this.detectPlatform(affiliateUrl);
-      return this.generateMockData(platform, affiliateUrl);
+      return this.generateEnhancedMockData(platform, affiliateUrl);
     }
   }
 
@@ -67,75 +70,81 @@ export class ProductExtractor {
       return 'ebay';
     }
     
-    // Default to amazon if platform cannot be determined
     return 'amazon';
   }
 
-  private static generateMockData(platform: 'amazon' | 'aliexpress' | 'ebay', url: string): Partial<ExtractedProductData> {
-    // Mock data generator - in real implementation, this would be actual extraction
+  private static generateEnhancedMockData(platform: 'amazon' | 'aliexpress' | 'ebay', url: string): Partial<ExtractedProductData> {
+    console.log('Generating enhanced mock data for platform:', platform);
+    
     const mockProducts = {
       amazon: [
         {
-          name: "Premium Wireless Earbuds",
-          price: 79.99,
-          originalPrice: 119.99,
+          name: "אוזניות Bluetooth אלחוטיות מקצועיות Pro Max",
+          price: 119.99,
+          originalPrice: 179.99,
           imageUrl: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop",
-          description: "High-quality wireless earbuds with noise cancellation",
-          category: "Tech",
-          rating: 4.5
+          description: "אוזניות אלחוטיות איכותיות עם ביטול רעש אקטיבי, איכות צליל מעולה וסוללה ארוכת מחזיק עד 30 שעות. מושלמות לאוהבי מוסיקה ואנשי מקצוע.",
+          category: "Electronics",
+          rating: 4.5,
+          brand: "AudioTech Pro"
         },
         {
-          name: "Smart Home Security Camera",
-          price: 149.99,
-          originalPrice: 199.99,
-          imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
-          description: "1080p HD security camera with night vision",
-          category: "Home",
-          rating: 4.3
+          name: "Smart Watch Fitness Tracker with GPS",
+          price: 199.99,
+          originalPrice: 299.99,
+          imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
+          description: "שעון חכם מתקדם עם GPS, ניטור קצב לב, מד צעדים ועמידות במים. מושלם לספורטאים ולחיים פעילים.",
+          category: "Electronics",
+          rating: 4.3,
+          brand: "FitTech"
         }
       ],
       aliexpress: [
         {
-          name: "Bluetooth Gaming Mouse",
-          price: 29.99,
-          originalPrice: 49.99,
+          name: "עכבר גיימינג RGB עם דיוק גבוה Pro Gaming",
+          price: 49.99,
+          originalPrice: 89.99,
           imageUrl: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=400&fit=crop",
-          description: "RGB gaming mouse with high precision sensor",
-          category: "Tech",
-          rating: 4.2
+          description: "עכבר גיימינג מקצועי עם תאורת RGB מותאמת אישית, חיישן אופטי דיוק גבוה 16000 DPI ועיצוב ארגונומי למשחק ממושך.",
+          category: "Gaming",
+          rating: 4.2,
+          brand: "GameMaster Pro"
         },
         {
-          name: "LED Strip Lights Kit",
-          price: 19.99,
-          originalPrice: 34.99,
+          name: "LED Strip Lights Smart WiFi 5M Kit",
+          price: 29.99,
+          originalPrice: 59.99,
           imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
-          description: "Color-changing LED strips for room decoration",
-          category: "Home",
-          rating: 4.4
+          description: "רצועות LED חכמות עם WiFi, שליטה באפליקציה, סנכרון מוסיקה ו-16 מיליון צבעים. אורך 5 מטר עם חיתוך אישי.",
+          category: "Home Decor",
+          rating: 4.4,
+          brand: "SmartLights"
         }
       ],
       ebay: [
         {
-          name: "Vintage Style Watch",
-          price: 89.99,
+          name: "שעון יד בסגנון וינטג' Luxury Edition",
+          price: 149.99,
+          originalPrice: 229.99,
           imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-          description: "Classic vintage-style wristwatch with leather band",
+          description: "שעון יד יוקרתי בסגנון וינטג' עם רצועת עור איטלקית אמיתית, מנגנון קוורץ שוויצרי ועמידות במים 50 מטר.",
           category: "Fashion",
-          rating: 4.1
+          rating: 4.1,
+          brand: "LuxuryTime"
         },
         {
-          name: "Professional Tool Set",
-          price: 159.99,
-          originalPrice: 219.99,
+          name: "Professional Tool Set Deluxe 150 Pieces",
+          price: 179.99,
+          originalPrice: 279.99,
           imageUrl: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=400&h=400&fit=crop",
-          description: "Complete professional tool kit with carrying case",
+          description: "ערכת כלים מקצועית יוקרתית עם 150 חלקים, תיק קשיח מאורגן ואחריות לכל החיים. כלים באיכות גרמנית מעולה.",
           category: "Tools",
-          rating: 4.6
+          rating: 4.6,
+          brand: "ProCraft"
         }
       ]
     };
 
-    // Randomly select a mock product for the platform
     const platformProducts = mockProducts[platform];
     const randomProduct = platformProducts[Math.floor(Math.random() * platformProducts.length)];
     
@@ -162,6 +171,7 @@ export class ProductExtractor {
       category: extractedData.category || "Other",
       platform: extractedData.platform || "amazon",
       rating: extractedData.rating,
+      brand: extractedData.brand,
       discount,
       isNew: true,
       createdAt: now

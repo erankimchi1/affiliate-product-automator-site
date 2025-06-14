@@ -1,19 +1,19 @@
-
 import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { SearchBar } from "@/components/SearchBar";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { FeaturedSection } from "@/components/FeaturedSection";
+import { ExclusiveDeals } from "@/components/ExclusiveDeals";
 import { AdminPanel } from "@/components/AdminPanel";
 import { WishlistPanel } from "@/components/WishlistPanel";
-import { SubscriptionForm } from "@/components/SubscriptionForm";
 import { BlogSection } from "@/components/BlogSection";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
-import { Settings, Heart, ArrowUp, Sun, Moon } from "lucide-react";
+import { Settings, Heart, Sun, Moon } from "lucide-react";
 import { Product } from "@/types/Product";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { generateSEODescription, generateProductKeywords } from "@/utils/seoGenerator";
 
 const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -28,7 +28,7 @@ const Index = () => {
   
   const productsPerPage = 8;
 
-  // Sample products with realistic data
+  // Sample products with enhanced data
   useEffect(() => {
     const sampleProducts: Product[] = [
       {
@@ -46,6 +46,10 @@ const Index = () => {
         discount: 40,
         isNew: false,
         isTrending: true,
+        brand: "AudioTech",
+        isExclusive: true,
+        hasUrgentDeal: true,
+        urgentDealExpiry: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
         sources: [
           { platform: "amazon", price: 89.99, link: "https://amazon.com/1" },
           { platform: "ebay", price: 94.99, link: "https://ebay.com/1" }
@@ -64,6 +68,8 @@ const Index = () => {
         rating: 4.3,
         discount: 33,
         isNew: true,
+        brand: "FitTech",
+        isEarlyAccess: true,
         sources: [
           { platform: "aliexpress", price: 199.99, link: "https://aliexpress.com/2" },
           { platform: "amazon", price: 219.99, link: "https://amazon.com/2" }
@@ -80,7 +86,8 @@ const Index = () => {
         platform: "ebay",
         rating: 4.7,
         isNew: false,
-        isTrending: false
+        isTrending: false,
+        brand: "BrewMaster"
       },
       {
         id: "4",
@@ -95,6 +102,7 @@ const Index = () => {
         rating: 4.2,
         discount: 33,
         isNew: false,
+        brand: "ChargeUp",
         sources: [
           { platform: "amazon", price: 39.99, link: "https://amazon.com/4" },
           { platform: "aliexpress", price: 45.99, link: "https://aliexpress.com/4" }
@@ -113,7 +121,8 @@ const Index = () => {
         rating: 4.6,
         discount: 33,
         isNew: true,
-        isTrending: true
+        isTrending: true,
+        brand: "ComfortPlus"
       },
       {
         id: "6",
@@ -125,7 +134,8 @@ const Index = () => {
         category: "Tech",
         platform: "ebay",
         rating: 4.4,
-        isNew: false
+        isNew: false,
+        brand: "GameTech"
       },
       {
         id: "7",
@@ -140,7 +150,8 @@ const Index = () => {
         rating: 4.8,
         discount: 33,
         isNew: false,
-        isTrending: true
+        isTrending: true,
+        brand: "ChefWare"
       },
       {
         id: "8",
@@ -152,7 +163,8 @@ const Index = () => {
         category: "Home",
         platform: "aliexpress",
         rating: 4.3,
-        isNew: true
+        isNew: true,
+        brand: "BrightTech"
       },
       {
         id: "9",
@@ -166,7 +178,8 @@ const Index = () => {
         platform: "ebay",
         rating: 4.5,
         discount: 28,
-        isNew: false
+        isNew: false,
+        brand: "KeyMaster"
       },
       {
         id: "10",
@@ -179,7 +192,8 @@ const Index = () => {
         platform: "amazon",
         rating: 4.2,
         isNew: true,
-        isTrending: true
+        isTrending: true,
+        brand: "SecureHome"
       },
       {
         id: "11",
@@ -193,7 +207,8 @@ const Index = () => {
         platform: "aliexpress",
         rating: 4.6,
         discount: 38,
-        isNew: false
+        isNew: false,
+        brand: "YogaLife"
       },
       {
         id: "12",
@@ -206,7 +221,8 @@ const Index = () => {
         platform: "ebay",
         rating: 4.4,
         isNew: false,
-        isTrending: true
+        isTrending: true,
+        brand: "ToolMaster"
       },
       {
         id: "13",
@@ -220,7 +236,8 @@ const Index = () => {
         platform: "amazon",
         rating: 4.3,
         discount: 33,
-        isNew: true
+        isNew: true,
+        brand: "LumiTech"
       },
       {
         id: "14",
@@ -235,7 +252,8 @@ const Index = () => {
         rating: 4.7,
         discount: 25,
         isNew: false,
-        isTrending: true
+        isTrending: true,
+        brand: "AudioTech"
       },
       {
         id: "15",
@@ -249,14 +267,19 @@ const Index = () => {
         platform: "ebay",
         rating: 4.5,
         discount: 31,
-        isNew: false
+        isNew: false,
+        brand: "StylePro"
       }
-    ];
+    ].map(product => ({
+      ...product,
+      keywords: generateProductKeywords(product),
+      seoDescription: generateSEODescription(product)
+    }));
+    
     setProducts(sampleProducts);
     setFilteredProducts(sampleProducts);
   }, []);
 
-  // Filter products based on category and search
   useEffect(() => {
     let filtered = products;
     
@@ -268,7 +291,8 @@ const Index = () => {
       filtered = filtered.filter(product => 
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase())
+        product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.keywords?.some(keyword => keyword.includes(searchQuery.toLowerCase()))
       );
     }
     
@@ -276,7 +300,6 @@ const Index = () => {
     setCurrentPage(1);
   }, [products, selectedCategory, searchQuery]);
 
-  // Apply dark mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -292,6 +315,17 @@ const Index = () => {
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
   const startIndex = (currentPage - 1) * productsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
+
+  // SEO Meta tags
+  useEffect(() => {
+    document.title = "AffiliateHub Pro - Best Deals from Amazon, eBay & AliExpress";
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 
+        'Discover amazing deals and exclusive offers from top retailers worldwide. Compare prices, find trending products, and save money on tech, home, fashion, and tools.'
+      );
+    }
+  }, []);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
@@ -353,13 +387,13 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Exclusive Deals */}
+        <ExclusiveDeals products={products} wishlist={wishlist} setWishlist={setWishlist} />
+
         {/* Featured Products */}
         {featuredProducts.length > 0 && (
           <FeaturedSection products={featuredProducts} wishlist={wishlist} setWishlist={setWishlist} />
         )}
-
-        {/* Subscription Form */}
-        <SubscriptionForm />
 
         {/* Search and Filter Section */}
         <div className="mb-8 space-y-4">
@@ -390,6 +424,7 @@ const Index = () => {
                 product={product} 
                 wishlist={wishlist}
                 setWishlist={setWishlist}
+                allProducts={products}
               />
             ))}
           </div>
@@ -429,7 +464,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-lg font-semibold mb-4">AffiliateHub Pro</h3>
-              <p className="text-gray-400">Find the best deals from Amazon, AliExpress, and eBay all in one place. Smart shopping made simple.</p>
+              <p className="text-gray-400">Find the best deals from Amazon, AliExpress, and eBay all in one place. Smart shopping made simple with exclusive offers and price comparisons.</p>
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Categories</h4>
@@ -444,8 +479,8 @@ const Index = () => {
               <h4 className="text-lg font-semibold mb-4">Features</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>Price Comparison</li>
-                <li>Daily Deal Updates</li>
-                <li>Wishlist & Favorites</li>
+                <li>Exclusive Deals</li>
+                <li>Product Recommendations</li>
                 <li>Mobile Optimized</li>
               </ul>
             </div>

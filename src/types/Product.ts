@@ -24,6 +24,13 @@ export interface Product {
   sources?: ProductSource[];
   createdAt?: string;
   views?: number;
+  brand?: string;
+  isExclusive?: boolean;
+  isEarlyAccess?: boolean;
+  hasUrgentDeal?: boolean;
+  urgentDealExpiry?: string;
+  keywords?: string[];
+  seoDescription?: string;
 }
 
 export interface BlogPost {

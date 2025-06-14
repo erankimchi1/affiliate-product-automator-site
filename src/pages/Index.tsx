@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Header } from "@/components/Header";
 import { MainContent } from "@/components/MainContent";
@@ -95,19 +96,23 @@ export default function Index() {
           isLoggedIn={false}
           onLogin={() => {}}
           onLogout={() => {}}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
         />
 
         <SearchBar 
-          searchTerm={searchTerm}
+          searchQuery={searchTerm}
           onSearchChange={setSearchTerm}
         />
 
         {showAdminPanel && (
           <AdminPanel 
-            onProductAdd={handleAddProduct}
+            products={filteredProducts}
+            setProducts={handleAddProduct}
             onClose={() => setShowAdminPanel(false)}
+            onDeleteProduct={(id: string) => refetchProducts()}
+            blogs={blogs}
+            onAddBlog={(blog: Omit<BlogPost, 'id'>) => refetchBlogs()}
+            onUpdateBlog={(blog: BlogPost) => refetchBlogs()}
+            onDeleteBlog={(blogId: string) => refetchBlogs()}
           />
         )}
 

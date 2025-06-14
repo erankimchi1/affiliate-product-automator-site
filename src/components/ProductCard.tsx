@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,7 @@ export const ProductCard = ({
   const [showShare, setShowShare] = useState(false);
   const [showSuggested, setShowSuggested] = useState(false);
   const [urgentDealActive, setUrgentDealActive] = useState<boolean>(
-    product.hasUrgentDeal && product.urgentDealExpiry
+    !!(product.hasUrgentDeal && product.urgentDealExpiry)
   );
 
   const isWishlisted = wishlist.includes(product.id);

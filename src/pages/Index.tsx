@@ -51,8 +51,8 @@ const Index = () => {
         hasUrgentDeal: true,
         urgentDealExpiry: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
         sources: [
-          { platform: "amazon", price: 89.99, link: "https://amazon.com/1" },
-          { platform: "ebay", price: 94.99, link: "https://ebay.com/1" }
+          { platform: "amazon" as const, price: 89.99, link: "https://amazon.com/1" },
+          { platform: "ebay" as const, price: 94.99, link: "https://ebay.com/1" }
         ]
       },
       {
@@ -71,8 +71,8 @@ const Index = () => {
         brand: "FitTech",
         isEarlyAccess: true,
         sources: [
-          { platform: "aliexpress", price: 199.99, link: "https://aliexpress.com/2" },
-          { platform: "amazon", price: 219.99, link: "https://amazon.com/2" }
+          { platform: "aliexpress" as const, price: 199.99, link: "https://aliexpress.com/2" },
+          { platform: "amazon" as const, price: 219.99, link: "https://amazon.com/2" }
         ]
       },
       {
@@ -104,8 +104,8 @@ const Index = () => {
         isNew: false,
         brand: "ChargeUp",
         sources: [
-          { platform: "amazon", price: 39.99, link: "https://amazon.com/4" },
-          { platform: "aliexpress", price: 45.99, link: "https://aliexpress.com/4" }
+          { platform: "amazon" as const, price: 39.99, link: "https://amazon.com/4" },
+          { platform: "aliexpress" as const, price: 45.99, link: "https://aliexpress.com/4" }
         ]
       },
       {

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Plus, Trash2, Code, Webhook, Edit, BookOpen } from "lucide-react";
+import { X, Plus, Trash2, Webhook, Edit, BookOpen } from "lucide-react";
 import { Product, BlogPost } from "@/types/Product";
 import { QuickAddProduct } from "@/components/QuickAddProduct";
 import { BlogManager } from "@/components/BlogManager";
@@ -16,12 +16,27 @@ import { toast } from "sonner";
 
 interface AdminPanelProps {
   products: Product[];
-  setProducts: (products: Product[]) => void;
+  setProducts: (product: Product) => void;
   onClose: () => void;
   onLogout?: () => void;
+  onDeleteProduct: (id: string) => void;
+  blogs: BlogPost[];
+  onAddBlog: (blog: Omit<BlogPost, 'id'>) => void;
+  onUpdateBlog: (blog: BlogPost) => void;
+  onDeleteBlog: (blogId: string) => void;
 }
 
-export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPanelProps) => {
+export const AdminPanel = ({ 
+  products, 
+  setProducts, 
+  onClose, 
+  onLogout, 
+  onDeleteProduct,
+  blogs,
+  onAddBlog,
+  onUpdateBlog,
+  onDeleteBlog
+}: AdminPanelProps) => {
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
@@ -41,44 +56,16 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
   const [showApiInfo, setShowApiInfo] = useState(false);
   const [showBlogManager, setShowBlogManager] = useState(false);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
-  const [blogs, setBlogs] = useState<BlogPost[]>([
-    {
-      id: "1",
-      title: "10 מבצעי הטק הטובים ביותר השבוע",
-      excerpt: "גלו הנחות מדהימות על הגאדג'טים והאלקטרוניקה החדשים ביותר שאתם לא רוצים לפספס.",
-      imageUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
-      link: "#tech-deals",
-      publishedAt: "2024-01-15"
-    },
-    {
-      id: "2",
-      title: "מכשירי מטבח ביתיים הטובים ביותר מתחת ל-400₪",
-      excerpt: "שנו את המטבח שלכם בלי לפוצץ את התקציב עם הממצאים המדהימים והחסכוניים האלה.",
-      imageUrl: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-      link: "#kitchen-deals",
-      publishedAt: "2024-01-14"
-    },
-    {
-      id: "3",
-      title: "טרנדי אופנה 2024: מדריך סטייל במחירים נוחים",
-      excerpt: "הישארו אופנתיים בתקציב מוגבל עם המבחר הנבחר שלנו של בגדים אופנתיים ובמחירים נגישים.",
-      imageUrl: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&h=300&fit=crop",
-      link: "#fashion-deals",
-      publishedAt: "2024-01-13"
-    }
-  ]);
 
   const handleProductAdd = (newProduct: Product) => {
-    setProducts([newProduct, ...products]);
+    setProducts(newProduct);
   };
 
   const handleBlogSave = (blog: BlogPost) => {
     if (editingBlog) {
-      setBlogs(blogs.map(b => b.id === blog.id ? blog : b));
-      toast.success(t('message.blogUpdated'));
+      onUpdateBlog(blog);
     } else {
-      setBlogs([blog, ...blogs]);
-      toast.success(t('message.blogAdded'));
+      onAddBlog(blog);
     }
     setEditingBlog(null);
     setShowBlogManager(false);
@@ -91,8 +78,7 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
 
   const handleBlogDelete = (blogId: string) => {
     if (window.confirm(t('message.confirmDeleteBlog'))) {
-      setBlogs(blogs.filter(b => b.id !== blogId));
-      toast.success(t('message.blogDeleted'));
+      onDeleteBlog(blogId);
     }
   };
 
@@ -124,7 +110,7 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
         undefined
     };
 
-    setProducts([newProduct, ...products]);
+    setProducts(newProduct);
     
     // Reset form
     setFormData({
@@ -141,17 +127,11 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
       isNew: false,
       isTrending: false
     });
-
-    toast.success("Product added successfully!");
-  };
-
-  const handleDelete = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
-    toast.success("Product deleted successfully!");
   };
 
   const handleWebhookTest = () => {
-    const testProduct = {
+    const testProduct: Product = {
+      id: Date.now().toString(),
       name: "Auto-Added Test Product",
       price: 99.99,
       originalPrice: 149.99,
@@ -159,18 +139,13 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
       description: "This product was automatically added via webhook",
       affiliateLink: "https://example.com/test",
       category: "Tech",
-      platform: "amazon" as const,
-      isNew: true
-    };
-
-    const newProduct: Product = {
-      ...testProduct,
-      id: Date.now().toString(),
+      platform: "amazon",
+      isNew: true,
       createdAt: new Date().toISOString(),
-      discount: Math.round(((testProduct.originalPrice - testProduct.price) / testProduct.originalPrice) * 100)
+      discount: Math.round(((149.99 - 99.99) / 149.99) * 100)
     };
 
-    setProducts([newProduct, ...products]);
+    setProducts(testProduct);
     toast.success("Webhook test successful! Product auto-added.");
   };
 
@@ -428,7 +403,7 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() => handleDelete(product.id)}
+                              onClick={() => onDeleteProduct(product.id)}
                             >
                               <Trash2 size={16} />
                             </Button>

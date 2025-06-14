@@ -6,7 +6,7 @@ import { BlogPost } from "@/types/Product";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BlogSectionProps {
-  blogs?: BlogPost[];
+  blogs: BlogPost[];
   isAdmin?: boolean;
   onEditBlog?: (blog: BlogPost) => void;
   onDeleteBlog?: (blogId: string) => void;
@@ -14,49 +14,13 @@ interface BlogSectionProps {
 }
 
 export const BlogSection = ({ 
-  blogs = [], 
+  blogs, 
   isAdmin = false, 
   onEditBlog, 
   onDeleteBlog, 
   onAddBlog 
 }: BlogSectionProps) => {
   const { t, language } = useLanguage();
-
-  // Default blog posts if none provided
-  const defaultBlogs: BlogPost[] = [
-    {
-      id: "1",
-      title: language === 'he' ? "10 מבצעי הטק הטובים ביותר השבוע" : "Top 10 Tech Deals This Week",
-      excerpt: language === 'he' 
-        ? "גלו הנחות מדהימות על הגאדג'טים והאלקטרוניקה החדשים ביותר שאתם לא רוצים לפספס."
-        : "Discover amazing discounts on the latest gadgets and electronics that you don't want to miss.",
-      imageUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
-      link: "https://example.com/tech-deals",
-      publishedAt: "2024-01-15"
-    },
-    {
-      id: "2",
-      title: language === 'he' ? "מכשירי מטבח ביתיים הטובים ביותר מתחת ל-400₪" : "Best Home Kitchen Appliances Under $100",
-      excerpt: language === 'he'
-        ? "שנו את המטבח שלכם בלי לפוצץ את התקציב עם הממצאים המדהימים והחסכוניים האלה."
-        : "Transform your kitchen without breaking the bank with these incredible budget-friendly finds.",
-      imageUrl: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-      link: "https://example.com/kitchen-deals",
-      publishedAt: "2024-01-14"
-    },
-    {
-      id: "3",
-      title: language === 'he' ? "טרנדי אופנה 2024: מדריך סטייל במחירים נוחים" : "Fashion Trends 2024: Affordable Style Guide",
-      excerpt: language === 'he'
-        ? "הישארו אופנתיים בתקציב מוגבל עם המבחר הנבחר שלנו של בגדים אופנתיים ובמחירים נגישים."
-        : "Stay fashionable on a budget with our curated selection of trendy and affordable clothing.",
-      imageUrl: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&h=300&fit=crop",
-      link: "https://example.com/fashion-deals",
-      publishedAt: "2024-01-13"
-    }
-  ];
-
-  const displayBlogs = blogs.length > 0 ? blogs : defaultBlogs;
 
   const handleBlogClick = (blog: BlogPost) => {
     if (blog.link && blog.link !== "#") {
@@ -89,7 +53,7 @@ export const BlogSection = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {displayBlogs.map((post) => (
+        {blogs.map((post) => (
           <Card key={post.id} className="group hover:shadow-lg transition-all duration-300 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
             <div className="relative overflow-hidden rounded-t-lg">
               <img

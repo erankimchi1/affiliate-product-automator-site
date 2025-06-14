@@ -50,8 +50,7 @@ export const ProductInfo = ({ product, compact = false, onBuyNow }: ProductInfoP
       {urgentDealActive && product.urgentDealExpiry && !compact && (
         <div className="mb-3">
           <UrgentDealTimer 
-            expiryTime={product.urgentDealExpiry}
-            onExpire={() => setUrgentDealActive(false)}
+            expiryDate={product.urgentDealExpiry}
           />
         </div>
       )}

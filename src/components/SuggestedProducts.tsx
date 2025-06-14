@@ -69,7 +69,6 @@ export const SuggestedProducts = ({
             product={product} 
             wishlist={wishlist}
             setWishlist={setWishlist}
-            compact={true}
           />
         ))}
       </div>

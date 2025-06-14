@@ -1,11 +1,11 @@
 
+
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, ExternalLink, Heart, Share2 } from "lucide-react";
 import { Product } from "@/types/Product";
-import { PriceComparison } from "./PriceComparison";
 import { SocialShare } from "./SocialShare";
 import { UrgentDealTimer } from "./UrgentDealTimer";
 import { SuggestedProducts } from "./SuggestedProducts";
@@ -26,7 +26,6 @@ export const ProductCard = ({
   compact = false 
 }: ProductCardProps) => {
   const [imageError, setImageError] = useState(false);
-  const [showPriceComparison, setShowPriceComparison] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showSuggested, setShowSuggested] = useState(false);
   const [urgentDealActive, setUrgentDealActive] = useState<boolean>(
@@ -211,23 +210,6 @@ export const ProductCard = ({
               )}
             </div>
 
-            {/* Price Comparison */}
-            {product.sources && product.sources.length > 1 && !compact && (
-              <div className="mb-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPriceComparison(!showPriceComparison)}
-                  className="w-full"
-                >
-                  Compare Prices ({product.sources.length} sources)
-                </Button>
-                {showPriceComparison && (
-                  <PriceComparison sources={product.sources} />
-                )}
-              </div>
-            )}
-
             {/* Buy Button */}
             <Button 
               onClick={handleBuyNow}
@@ -252,3 +234,4 @@ export const ProductCard = ({
     </>
   );
 };
+

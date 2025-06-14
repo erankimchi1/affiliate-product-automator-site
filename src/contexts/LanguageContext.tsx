@@ -1,354 +1,257 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'en' | 'he';
-
-interface LanguageContextType {
-  language: Language;
-  setLanguage: (lang: Language) => void;
+interface LanguageContextProps {
+  language: string;
   t: (key: string) => string;
-  isRTL: boolean;
+  setLanguage: (lang: string) => void;
 }
+
+const LanguageContext = createContext<LanguageContextProps>({
+  language: 'en',
+  t: (key: string) => key,
+  setLanguage: () => {}
+});
 
 const translations = {
   en: {
-    // Header
-    'header.title': 'AffiliateHub Pro',
-    'header.subtitle': 'Best Deals from Top Retailers',
-    'header.wishlist': 'Wishlist',
-    'header.admin': 'Admin',
-    'header.darkMode': 'Dark Mode',
-    'header.lightMode': 'Light Mode',
-    
-    // Categories
-    'category.all': 'All Products',
-    'category.tech': 'Tech',
-    'category.home': 'Home',
-    'category.fashion': 'Fashion',
-    'category.tools': 'Tools',
-    'category.gaming': 'Gaming',
-    'category.electronics': 'Electronics',
-    'category.general': 'General',
-    'category.import': 'Import',
-    'category.security': 'Home Security',
-    'category.decor': 'Home Decor',
-    
-    // Product actions
-    'product.addToWishlist': 'Add to Wishlist',
-    'product.removeFromWishlist': 'Remove from Wishlist',
-    'product.buyNow': 'Buy Now',
-    'product.viewDetails': 'View Details',
-    'product.comparePrice': 'Compare Prices',
-    'product.share': 'Share',
-    'product.featured': 'Featured',
-    'product.trending': 'Trending',
-    'product.new': 'New',
-    'product.exclusive': 'Exclusive',
-    'product.earlyAccess': 'Early Access',
-    'product.urgentDeal': 'Limited Time',
-    'product.discount': 'OFF',
-    'product.rating': 'Rating',
-    'product.brand': 'Brand',
-    
-    // Search
-    'search.placeholder': 'Search products...',
-    'search.noResults': 'No products found matching your search.',
-    'search.results': 'results',
-    
-    // Admin
-    'admin.title': 'Admin Panel',
-    'admin.addProduct': 'Add New Product',
-    'admin.scrapeProduct': 'Scrape Product',
-    'admin.manageProducts': 'Manage Products',
-    'admin.logout': 'Logout',
-    'admin.close': 'Close Admin Panel',
-    
-    // Quick Add
-    'quickAdd.title': 'AI-Powered Product Scraper',
-    'quickAdd.urlLabel': 'Affiliate URL',
-    'quickAdd.urlPlaceholder': 'https://amazon.com/dp/B123456789?tag=youraffid',
-    'quickAdd.description': 'Real-time scraping for Amazon, AliExpress, and eBay',
-    'quickAdd.button': 'Scrape & Add Product',
-    'quickAdd.scraping': 'Scraping Product...',
-    
-    // Scraping steps
-    'scraping.initializing': 'Initializing scraper...',
-    'scraping.fetching': 'Fetching product page...',
-    'scraping.extracting': 'Extracting product data...',
-    'scraping.processing': 'Processing product information...',
-    'scraping.adding': 'Adding product...',
-    'scraping.analyzing': 'Analyzing page content...',
-    'scraping.parsing': 'Parsing product details...',
-    
-    // Messages
-    'message.productAdded': 'Product added successfully!',
-    'message.productScraped': 'Product "{name}" scraped and added successfully!',
-    'message.scrapingFailed': 'Scraping failed. Please check the URL and try again.',
-    'message.enterUrl': 'Please enter an affiliate URL',
-    'message.invalidUrl': 'Please enter a valid URL',
-    'message.addedToWishlist': 'Added to wishlist',
-    'message.removedFromWishlist': 'Removed from wishlist',
-    
-    // Main content
-    'main.featuredDeals': 'Featured Deals',
-    'main.featuredSubtitle': "Don't miss these amazing limited-time offers!",
-    'main.exclusiveDeals': 'Exclusive & Early Access Deals',
-    'main.exclusiveSubtitle': 'Limited-time exclusive offers just for you!',
-    'main.allProducts': 'All Products',
-    'main.latestGuides': 'Latest Deal Guides',
-    'main.guidesSubtitle': 'Expert tips and curated lists to help you save more',
-    
-    // Pagination
-    'pagination.previous': 'Previous',
-    'pagination.next': 'Next',
-    'pagination.page': 'Page',
-    
-    // Price comparison
-    'price.comparison': 'Price Comparison',
-    'price.best': 'BEST',
-    'price.viewOffer': 'View Offer',
-    
-    // Footer
-    'footer.rights': 'All rights reserved',
-    'footer.affiliate': 'Affiliate Disclosure: We may earn commissions from purchases made through our links.',
-    'footer.categories': 'Categories',
-    'footer.features': 'Features',
-    'footer.legal': 'Legal',
-    'footer.description': 'Find the best deals from Amazon, AliExpress, and eBay all in one place. Smart shopping made simple with exclusive offers and price comparisons.',
-    'footer.priceComparison': 'Price Comparison',
-    'footer.exclusiveDeals': 'Exclusive Deals',
-    'footer.recommendations': 'Product Recommendations',
-    'footer.mobileOptimized': 'Mobile Optimized',
-    
-    // Wishlist
-    'wishlist.title': 'My Wishlist',
-    'wishlist.empty': 'Your wishlist is empty',
-    'wishlist.emptyDescription': 'Add some products to your wishlist to see them here',
-    'wishlist.remove': 'Remove from wishlist',
-    
-    // Categories in footer
-    'footer.techElectronics': 'Tech & Electronics',
-    'footer.homeKitchen': 'Home & Kitchen',
-    'footer.fashionBeauty': 'Fashion & Beauty',
-    'footer.toolsHardware': 'Tools & Hardware',
-    
-    // Common
-    'common.close': 'Close',
-    'common.save': 'Save',
-    'common.cancel': 'Cancel',
-    'common.loading': 'Loading...',
-    'common.error': 'Error',
-    'common.success': 'Success',
-    'common.language': 'Language',
-    'common.readMore': 'Read More',
-    'common.showMore': 'Show More',
-    'common.showLess': 'Show Less',
-    'common.viewAll': 'View All',
-    
-    // Blog management
-    'admin.addBlog': 'Add Blog Post',
-    'admin.editBlog': 'Edit Blog Post',
-    'blog.title': 'Title',
-    'blog.titlePlaceholder': 'Enter blog post title...',
-    'blog.excerpt': 'Excerpt',
-    'blog.excerptPlaceholder': 'Enter a brief description of the blog post...',
-    'blog.imageUrl': 'Image URL',
-    'blog.imageUrlPlaceholder': 'https://example.com/image.jpg',
-    'blog.link': 'External Link',
-    'blog.linkPlaceholder': 'https://example.com/full-article',
-    'message.blogSaved': 'Blog post saved successfully!',
-    'message.fillRequiredFields': 'Please fill in all required fields',
-    
-    // Enhanced scraping messages
-    'message.scrapingReal': 'Using real product data scraping...',
-    'message.scrapingSuccess': 'Product successfully scraped from {platform}',
-    'message.scrapingFallback': 'Using enhanced product data...'
+    header: {
+      title: "AffiliateHub Pro",
+      subtitle: "Best Deals from Amazon, eBay & AliExpress",
+      darkMode: "Switch to Dark Mode",
+      lightMode: "Switch to Light Mode",
+      wishlist: "Wishlist",
+      admin: "Admin Panel"
+    },
+    main: {
+      featuredDeals: "Featured Deals",
+      latestProducts: "Latest Products",
+      latestGuides: "Latest Guides",
+      guidesSubtitle: "Explore our latest tips, tricks, and recommendations.",
+      noProductsFound: "No products found in this category."
+    },
+    search: {
+      placeholder: "Search for products...",
+      noResults: "No products found matching your search."
+    },
+    product: {
+      viewDetails: "View Details",
+      addToWishlist: "Add to Wishlist",
+      removeFromWishlist: "Remove from Wishlist",
+      discount: "Discount",
+      rating: "Rating",
+      sources: "Available on:",
+      goToProduct: "Go to Product",
+      earlyAccess: "Early Access",
+      exclusive: "Exclusive",
+      urgentDeal: "Urgent Deal! Ends in",
+      hours: "hours",
+      minutes: "minutes"
+    },
+    admin: {
+      dashboard: "Admin Dashboard",
+      products: "Products", 
+      blogs: "Blogs",
+      logout: "Logout",
+      addProduct: "Add Product",
+      addBlog: "Add Blog",
+      editBlog: "Edit Blog",
+      manualAddProduct: "Manual Add Product",
+      automaticIntegration: "Automatic Product Integration",
+      webhookEndpoint: "Webhook Endpoint",
+      testWebhook: "Test Webhook (Add Sample Product)",
+      expectedFormat: "Expected JSON Format",
+      currentProducts: "Current Products",
+      blogManagement: "Blog Management"
+    },
+    blog: {
+      title: "Title",
+      titlePlaceholder: "Enter blog title...",
+      excerpt: "Excerpt", 
+      excerptPlaceholder: "Enter blog excerpt...",
+      imageUrl: "Image URL",
+      imageUrlPlaceholder: "Enter image URL...",
+      link: "Link",
+      linkPlaceholder: "Enter blog link...",
+      publishedAt: "Published at"
+    },
+    product: {
+      name: "Product Name",
+      price: "Price",
+      originalPrice: "Original Price", 
+      imageUrl: "Image URL",
+      description: "Description",
+      affiliateLink: "Affiliate Link",
+      category: "Category",
+      platform: "Platform",
+      rating: "Rating",
+      featured: "Featured Product",
+      markAsNew: "Mark as New",
+      markAsTrending: "Mark as Trending",
+      new: "NEW",
+      trending: "TRENDING"
+    },
+    message: {
+      fillRequiredFields: "Please fill in all required fields",
+      blogSaved: "Blog post saved successfully",
+      blogUpdated: "Blog post updated successfully", 
+      blogAdded: "Blog post added successfully",
+      blogDeleted: "Blog post deleted successfully",
+      confirmDeleteBlog: "Are you sure you want to delete this blog post?"
+    },
+    category: {
+      all: "All",
+      electronics: "Electronics",
+      tech: "Tech",
+      home: "Home",
+      fashion: "Fashion",
+      tools: "Tools",
+      gaming: "Gaming",
+      general: "General",
+	  import: "Import",
+      security: "Home Security",
+      decor: "Home Decor"
+    },
+    common: {
+      readMore: "Read More",
+      cancel: "Cancel",
+      save: "Save",
+	  hide: "Hide",
+	  show: "Show",
+	  details: "Details"
+    },
+    footer: {
+      copyright: "© {year} AffiliateHub Pro. All rights reserved."
+    }
   },
   he: {
-    // Header
-    'header.title': 'AffiliateHub Pro',
-    'header.subtitle': 'המבצעים הטובים ביותר מקמעונאים מובילים',
-    'header.wishlist': 'רשימת המשאלות',
-    'header.admin': 'ניהול',
-    'header.darkMode': 'מצב כהה',
-    'header.lightMode': 'מצב בהיר',
-    
-    // Categories
-    'category.all': 'כל המוצרים',
-    'category.tech': 'טכנולוגיה',
-    'category.home': 'בית',
-    'category.fashion': 'אופנה',
-    'category.tools': 'כלים',
-    'category.gaming': 'משחקים',
-    'category.electronics': 'אלקטרוניקה',
-    'category.general': 'כללי',
-    'category.import': 'יבוא',
-    'category.security': 'אבטחה ביתית',
-    'category.decor': 'עיצוב הבית',
-    
-    // Product actions
-    'product.addToWishlist': 'הוסף לרשימת המשאלות',
-    'product.removeFromWishlist': 'הסר מרשימת המשאלות',
-    'product.buyNow': 'קנה עכשיו',
-    'product.viewDetails': 'צפה בפרטים',
-    'product.comparePrice': 'השווה מחירים',
-    'product.share': 'שתף',
-    'product.featured': 'מומלץ',
-    'product.trending': 'פופולרי',
-    'product.new': 'חדש',
-    'product.exclusive': 'בלעדי',
-    'product.earlyAccess': 'גישה מוקדמת',
-    'product.urgentDeal': 'זמן מוגבל',
-    'product.discount': 'הנחה',
-    'product.rating': 'דירוג',
-    'product.brand': 'מותג',
-    
-    // Search
-    'search.placeholder': 'חפש מוצרים...',
-    'search.noResults': 'לא נמצאו מוצרים התואמים לחיפוש שלך.',
-    'search.results': 'תוצאות',
-    
-    // Admin
-    'admin.title': 'פאנל ניהול',
-    'admin.addProduct': 'הוסף מוצר חדש',
-    'admin.scrapeProduct': 'גרוף מוצר',
-    'admin.manageProducts': 'נהל מוצרים',
-    'admin.logout': 'התנתק',
-    'admin.close': 'סגור פאנל ניהול',
-    
-    // Quick Add
-    'quickAdd.title': 'גורף מוצרים מבוסס בינה מלאכותית',
-    'quickAdd.urlLabel': 'קישור שותפות',
-    'quickAdd.urlPlaceholder': 'https://amazon.com/dp/B123456789?tag=youraffid',
-    'quickAdd.description': 'גרוף בזמן אמת מאמזון, AliExpress ו-eBay',
-    'quickAdd.button': 'גרוף והוסף מוצר',
-    'quickAdd.scraping': 'גורף מוצר...',
-    
-    // Scraping steps
-    'scraping.initializing': 'מאתחל גורף...',
-    'scraping.fetching': 'טוען דף המוצר...',
-    'scraping.extracting': 'מחלץ נתוני מוצר...',
-    'scraping.processing': 'מעבד מידע על המוצר...',
-    'scraping.adding': 'מוסיף מוצר...',
-    'scraping.analyzing': 'מנתח תוכן הדף...',
-    'scraping.parsing': 'מפרק פרטי המוצר...',
-    
-    // Messages
-    'message.productAdded': 'המוצר נוסף בהצלחה!',
-    'message.productScraped': 'המוצר "{name}" נגרף ונוסף בהצלחה!',
-    'message.scrapingFailed': 'הגריפה נכשלה. אנא בדוק את הקישור ונסה שוב.',
-    'message.enterUrl': 'אנא הזן קישור שותפות',
-    'message.invalidUrl': 'אנא הזן קישור תקין',
-    'message.addedToWishlist': 'נוסף לרשימת המשאלות',
-    'message.removedFromWishlist': 'הוסר מרשימת המשאלות',
-    
-    // Main content
-    'main.featuredDeals': 'מבצעים מומלצים',
-    'main.featuredSubtitle': 'אל תפספסו את ההצעות המוגבלות המדהימות האלה!',
-    'main.exclusiveDeals': 'מבצעים בלעדיים וגישה מוקדמת',
-    'main.exclusiveSubtitle': 'הצעות בלעדיות לזמן מוגבל רק בשבילכם!',
-    'main.allProducts': 'כל המוצרים',
-    'main.latestGuides': 'מדריכי המבצעים החדשים',
-    'main.guidesSubtitle': 'טיפים מומחה ורשימות נבחרות שיעזרו לכם לחסוך יותר',
-    
-    // Pagination
-    'pagination.previous': 'הקודם',
-    'pagination.next': 'הבא',
-    'pagination.page': 'עמוד',
-    
-    // Price comparison
-    'price.comparison': 'השוואת מחירים',
-    'price.best': 'הטוב ביותר',
-    'price.viewOffer': 'צפה בהצעה',
-    
-    // Footer
-    'footer.rights': 'כל הזכויות שמורות',
-    'footer.affiliate': 'גילוי שותפות: אנו עשויים לקבל עמלות מרכישות שנעשו דרך הקישורים שלנו.',
-    'footer.categories': 'קטגוריות',
-    'footer.features': 'תכונות',
-    'footer.legal': 'משפטי',
-    'footer.description': 'מצאו את המבצעים הטובים ביותר מאמזון, AliExpress ו-eBay במקום אחד. קניות חכמות בפשטות עם הצעות בלעדיות והשוואת מחירים.',
-    'footer.priceComparison': 'השוואת מחירים',
-    'footer.exclusiveDeals': 'מבצעים בלעדיים',
-    'footer.recommendations': 'המלצות מוצרים',
-    'footer.mobileOptimized': 'מותאם לנייד',
-    
-    // Wishlist
-    'wishlist.title': 'רשימת המשאלות שלי',
-    'wishlist.empty': 'רשימת המשאלות שלך ריקה',
-    'wishlist.emptyDescription': 'הוסף כמה מוצרים לרשימת המשאלות שלך כדי לראות אותם כאן',
-    'wishlist.remove': 'הסר מרשימת המשאלות',
-    
-    // Categories in footer
-    'footer.techElectronics': 'טכנולוgiה ואלקטרוניקה',
-    'footer.homeKitchen': 'בית ומטבח',
-    'footer.fashionBeauty': 'אופנה ויופי',
-    'footer.toolsHardware': 'כלים וחומרה',
-    
-    // Common
-    'common.close': 'סגור',
-    'common.save': 'שמור',
-    'common.cancel': 'בטל',
-    'common.loading': 'טוען...',
-    'common.error': 'שגיאה',
-    'common.success': 'הצלחה',
-    'common.language': 'שפה',
-    'common.readMore': 'קרא עוד',
-    'common.showMore': 'הצג עוד',
-    'common.showLess': 'הצג פחות',
-    'common.viewAll': 'צפה בהכל',
-    
-    // Blog management
-    'admin.addBlog': 'הוסף פוסט בבלוג',
-    'admin.editBlog': 'ערוך פוסט בבלוג',
-    'blog.title': 'כותרת',
-    'blog.titlePlaceholder': 'הזן כותרת לפוסט הבלוג...',
-    'blog.excerpt': 'תקציר',
-    'blog.excerptPlaceholder': 'הזן תיאור קצר של פוסט הבלוג...',
-    'blog.imageUrl': 'קישור לתמונה',
-    'blog.imageUrlPlaceholder': 'https://example.com/image.jpg',
-    'blog.link': 'קישור חיצוני',
-    'blog.linkPlaceholder': 'https://example.com/full-article',
-    'message.blogSaved': 'פוסט הבלוג נשמר בהצלחה!',
-    'message.fillRequiredFields': 'אנא מלא את כל השדות הנדרשים',
-    
-    // Enhanced scraping messages
-    'message.scrapingReal': 'משתמש בגריפת נתונים אמיתית של המוצר...',
-    'message.scrapingSuccess': 'המוצר נגרף בהצלחה מ-{platform}',
-    'message.scrapingFallback': 'משתמש בנתוני מוצר משופרים...'
+    header: {
+      title: "אפיליאציה האב פרו",
+      subtitle: "המבצעים הטובים ביותר מאמזון, איביי ועליאקספרס",
+      darkMode: "מעבר למצב חשוך",
+      lightMode: "מעבר למצב בהיר",
+      wishlist: "רשימת משאלות",
+      admin: "פאנל ניהול"
+    },
+    main: {
+      featuredDeals: "מבצעים מומלצים",
+      latestProducts: "המוצרים האחרונים",
+      latestGuides: "המדריכים האחרונים",
+      guidesSubtitle: "גלו את הטיפים, הטריקים וההמלצות האחרונות שלנו.",
+      noProductsFound: "לא נמצאו מוצרים בקטגוריה זו."
+    },
+    search: {
+      placeholder: "חפש מוצרים...",
+      noResults: "לא נמצאו מוצרים התואמים לחיפוש שלך."
+    },
+    product: {
+      viewDetails: "ראה פרטים",
+      addToWishlist: "הוסף לרשימת המשאלות",
+      removeFromWishlist: "הסר מרשימת המשאלות",
+      discount: "הנחה",
+      rating: "דירוג",
+      sources: "זמין ב:",
+      goToProduct: "עבור למוצר",
+      earlyAccess: "גישה מוקדמת",
+      exclusive: "בלעדי",
+      urgentDeal: "מבצע דחוף! מסתיים בעוד",
+      hours: "שעות",
+      minutes: "דקות"
+    },
+    admin: {
+      dashboard: "לוח בקרה למנהל",
+      products: "מוצרים",
+      blogs: "בלוגים", 
+      logout: "התנתק",
+      addProduct: "הוסף מוצר",
+      addBlog: "הוסף פוסט בבלוג",
+      editBlog: "ערוך פוסט בבלוג",
+      manualAddProduct: "הוספת מוצר ידנית",
+      automaticIntegration: "אינטגרציה אוטומטית של מוצרים",
+      webhookEndpoint: "נקודת קצה לוובהוק",
+      testWebhook: "בדוק וובהוק (הוסף מוצר לדוגמה)",
+      expectedFormat: "פורמט JSON צפוי",
+      currentProducts: "מוצרים נוכחיים",
+      blogManagement: "ניהול בלוג"
+    },
+    blog: {
+      title: "כותרת",
+      titlePlaceholder: "הכנס כותרת לפוסט...",
+      excerpt: "תקציר",
+      excerptPlaceholder: "הכנס תקציר לפוסט...", 
+      imageUrl: "קישור לתמונה",
+      imageUrlPlaceholder: "הכנס קישור לתמונה...",
+      link: "קישור",
+      linkPlaceholder: "הכנס קישור לפוסט...",
+      publishedAt: "פורסם ב"
+    },
+    product: {
+      name: "שם המוצר",
+      price: "מחיר",
+      originalPrice: "מחיר מקורי",
+      imageUrl: "קישור לתמונה", 
+      description: "תיאור",
+      affiliateLink: "קישור שותפות",
+      category: "קטגוריה",
+      platform: "פלטפורמה",
+      rating: "דירוג",
+      featured: "מוצר מומלץ",
+      markAsNew: "סמן כחדש",
+      markAsTrending: "סמן כטרנדי",
+      new: "חדש",
+      trending: "טרנדי"
+    },
+    message: {
+      fillRequiredFields: "אנא מלא את כל השדות הנדרשים",
+      blogSaved: "פוסט הבלוג נשמר בהצלחה",
+      blogUpdated: "פוסט הבלוג עודכן בהצלחה",
+      blogAdded: "פוסט הבלוג נוסף בהצלחה", 
+      blogDeleted: "פוסט הבלוג נמחק בהצלחה",
+      confirmDeleteBlog: "האם אתה בטוח שברצונך למחוק את פוסט הבלוג הזה?"
+    },
+    category: {
+      all: "הכל",
+      electronics: "אלקטרוניקה",
+      tech: "טכנולוגיה",
+      home: "בית",
+      fashion: "אופנה",
+      tools: "כלים",
+      gaming: "גיימינג",
+      general: "כללי",
+	  import: "יבוא",
+      security: "אבטחת בית",
+      decor: "עיצוב הבית"
+    },
+    common: {
+      readMore: "קרא עוד",
+      cancel: "בטל",
+      save: "שמור",
+	  hide: "הסתר",
+	  show: "הצג",
+	  details: "פרטים"
+    },
+    footer: {
+      copyright: "© {year} אפיליאציה האב פרו. כל הזכויות שמורות."
+    }
   }
 };
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
-
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>(() => {
-    const saved = localStorage.getItem('language');
-    return (saved as Language) || 'en';
-  });
-
-  const isRTL = language === 'he';
+  const [language, setLanguage] = useState(localStorage.getItem('lang') || 'en');
 
   useEffect(() => {
-    localStorage.setItem('language', language);
-    document.documentElement.lang = language;
-    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-  }, [language, isRTL]);
+    localStorage.setItem('lang', language);
+  }, [language]);
 
-  const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations['en']] || key;
+  const t = (key: string) => {
+    const lang = language as keyof typeof translations;
+    return translations[lang]?.[key] || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isRTL }}>
+    <LanguageContext.Provider value={{ language, t, setLanguage }}>
       {children}
     </LanguageContext.Provider>
   );
 };
 
-export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
-};
+export const useLanguage = () => useContext(LanguageContext);

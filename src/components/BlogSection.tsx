@@ -4,19 +4,26 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, Calendar, Plus, Edit, Trash2 } from "lucide-react";
 import { BlogPost } from "@/types/Product";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useState } from "react";
 
 interface BlogSectionProps {
+  blogs?: BlogPost[];
   isAdmin?: boolean;
   onEditBlog?: (blog: BlogPost) => void;
   onDeleteBlog?: (blogId: string) => void;
   onAddBlog?: () => void;
 }
 
-export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBlog }: BlogSectionProps) => {
+export const BlogSection = ({ 
+  blogs = [], 
+  isAdmin = false, 
+  onEditBlog, 
+  onDeleteBlog, 
+  onAddBlog 
+}: BlogSectionProps) => {
   const { t, language } = useLanguage();
 
-  const blogPosts: BlogPost[] = [
+  // Default blog posts if none provided
+  const defaultBlogs: BlogPost[] = [
     {
       id: "1",
       title: language === 'he' ? "10 מבצעי הטק הטובים ביותר השבוע" : "Top 10 Tech Deals This Week",
@@ -24,7 +31,7 @@ export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBl
         ? "גלו הנחות מדהימות על הגאדג'טים והאלקטרוניקה החדשים ביותר שאתם לא רוצים לפספס."
         : "Discover amazing discounts on the latest gadgets and electronics that you don't want to miss.",
       imageUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
-      link: "#",
+      link: "https://example.com/tech-deals",
       publishedAt: "2024-01-15"
     },
     {
@@ -34,7 +41,7 @@ export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBl
         ? "שנו את המטבח שלכם בלי לפוצץ את התקציב עם הממצאים המדהימים והחסכוניים האלה."
         : "Transform your kitchen without breaking the bank with these incredible budget-friendly finds.",
       imageUrl: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-      link: "#",
+      link: "https://example.com/kitchen-deals",
       publishedAt: "2024-01-14"
     },
     {
@@ -44,10 +51,27 @@ export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBl
         ? "הישארו אופנתיים בתקציב מוגבל עם המבחר הנבחר שלנו של בגדים אופנתיים ובמחירים נגישים."
         : "Stay fashionable on a budget with our curated selection of trendy and affordable clothing.",
       imageUrl: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&h=300&fit=crop",
-      link: "#",
+      link: "https://example.com/fashion-deals",
       publishedAt: "2024-01-13"
     }
   ];
+
+  const displayBlogs = blogs.length > 0 ? blogs : defaultBlogs;
+
+  const handleBlogClick = (blog: BlogPost) => {
+    if (blog.link && blog.link !== "#") {
+      // If it's a proper URL, open in new tab
+      if (blog.link.startsWith('http')) {
+        window.open(blog.link, '_blank', 'noopener,noreferrer');
+      } else {
+        // If it's a relative link, navigate within the app
+        window.location.href = blog.link;
+      }
+    } else {
+      // Default behavior for placeholder links
+      console.log(`Navigating to blog: ${blog.title}`);
+    }
+  };
 
   return (
     <section className="mb-12">
@@ -65,7 +89,7 @@ export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBl
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {blogPosts.map((post) => (
+        {displayBlogs.map((post) => (
           <Card key={post.id} className="group hover:shadow-lg transition-all duration-300 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
             <div className="relative overflow-hidden rounded-t-lg">
               <img
@@ -78,7 +102,10 @@ export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBl
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => onEditBlog?.(post)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditBlog?.(post);
+                    }}
                     className="opacity-80 hover:opacity-100"
                   >
                     <Edit size={14} />
@@ -86,7 +113,10 @@ export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBl
                   <Button
                     size="sm"
                     variant="destructive"
-                    onClick={() => onDeleteBlog?.(post.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteBlog?.(post.id);
+                    }}
                     className="opacity-80 hover:opacity-100"
                   >
                     <Trash2 size={14} />
@@ -99,7 +129,7 @@ export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBl
                 <Calendar size={14} />
                 {new Date(post.publishedAt).toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US')}
               </div>
-              <CardTitle className="text-lg text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <CardTitle className="text-lg text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors cursor-pointer">
                 {post.title}
               </CardTitle>
             </CardHeader>
@@ -110,7 +140,7 @@ export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBl
               <Button 
                 variant="outline" 
                 className="w-full group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20"
-                onClick={() => window.open(post.link, '_blank')}
+                onClick={() => handleBlogClick(post)}
               >
                 {t('common.readMore')}
                 <ExternalLink size={14} className="ml-2" />

@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -75,7 +74,7 @@ export const ProductCard = ({
 
   return (
     <>
-      <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 relative overflow-hidden">
+      <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 relative overflow-visible">
         <CardContent className="p-0">
           {/* Product Image */}
           <div className="relative overflow-hidden rounded-t-lg">
@@ -140,21 +139,22 @@ export const ProductCard = ({
                 >
                   <Heart size={16} fill={isWishlisted ? "currentColor" : "none"} />
                 </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => setShowShare(!showShare)}
-                  className="w-8 h-8 p-0"
-                >
-                  <Share2 size={16} />
-                </Button>
-              </div>
-            )}
-
-            {/* Social Share */}
-            {showShare && !compact && (
-              <div className="absolute top-12 right-2">
-                <SocialShare product={product} onClose={() => setShowShare(false)} />
+                <div className="relative">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setShowShare(!showShare)}
+                    className="w-8 h-8 p-0"
+                  >
+                    <Share2 size={16} />
+                  </Button>
+                  {/* Social Share - moved to be relative to this button */}
+                  {showShare && (
+                    <div className="absolute top-0 right-10 z-50">
+                      <SocialShare product={product} onClose={() => setShowShare(false)} />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -234,4 +234,3 @@ export const ProductCard = ({
     </>
   );
 };
-

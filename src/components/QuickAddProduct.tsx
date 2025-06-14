@@ -8,6 +8,7 @@ import { Loader2, Link, Plus, CheckCircle, AlertCircle } from "lucide-react";
 import { Product } from "@/types/Product";
 import { ProductExtractor } from "@/services/productExtractor";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface QuickAddProductProps {
   onProductAdd: (product: Product) => void;
@@ -17,12 +18,13 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
   const [affiliateUrl, setAffiliateUrl] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionStep, setExtractionStep] = useState("");
+  const { t } = useLanguage();
 
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!affiliateUrl.trim()) {
-      toast.error("Please enter an affiliate URL");
+      toast.error(t('message.enterUrl'));
       return;
     }
 
@@ -30,30 +32,30 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
     try {
       new URL(affiliateUrl);
     } catch {
-      toast.error("Please enter a valid URL");
+      toast.error(t('message.invalidUrl'));
       return;
     }
 
     setIsExtracting(true);
-    setExtractionStep("Initializing scraper...");
+    setExtractionStep(t('scraping.initializing'));
     
     try {
       console.log("Starting real product extraction for:", affiliateUrl);
       
-      setExtractionStep("Fetching product page...");
+      setExtractionStep(t('scraping.fetching'));
       await new Promise(resolve => setTimeout(resolve, 1000)); // Visual feedback delay
       
-      setExtractionStep("Extracting product data...");
+      setExtractionStep(t('scraping.extracting'));
       
       // Extract product data from URL using real scraping
       const extractedData = await ProductExtractor.extractFromUrl(affiliateUrl);
       
-      setExtractionStep("Processing product information...");
+      setExtractionStep(t('scraping.processing'));
       
       // Create product from extracted data
       const newProduct = ProductExtractor.createProductFromExtracted(extractedData, affiliateUrl);
       
-      setExtractionStep("Adding product...");
+      setExtractionStep(t('scraping.adding'));
       
       // Add product
       onProductAdd(newProduct);
@@ -65,7 +67,7 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
       toast.success(
         <div className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4" />
-          Product "{newProduct.name}" scraped and added successfully!
+          {t('message.productScraped').replace('{name}', `"${newProduct.name}"`)}
         </div>
       );
       
@@ -75,7 +77,7 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
       toast.error(
         <div className="flex items-center gap-2">
           <AlertCircle className="h-4 w-4" />
-          Real scraping failed, using fallback data. Try again later.
+          {t('message.scrapingFailed')}
         </div>
       );
     } finally {
@@ -89,24 +91,24 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Link size={20} />
-          AI-Powered Product Scraper
+          {t('quickAdd.title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleQuickAdd} className="space-y-4">
           <div>
-            <Label htmlFor="affiliateUrl">Affiliate URL *</Label>
+            <Label htmlFor="affiliateUrl">{t('quickAdd.urlLabel')} *</Label>
             <Input
               id="affiliateUrl"
               type="url"
               value={affiliateUrl}
               onChange={(e) => setAffiliateUrl(e.target.value)}
-              placeholder="https://amazon.com/dp/B123456789?tag=youraffid"
+              placeholder={t('quickAdd.urlPlaceholder')}
               required
               disabled={isExtracting}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Real-time scraping for Amazon, AliExpress, and eBay
+              {t('quickAdd.description')}
             </p>
           </div>
 
@@ -127,12 +129,12 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
             {isExtracting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Scraping Product...
+                {t('quickAdd.scraping')}
               </>
             ) : (
               <>
                 <Plus className="mr-2 h-4 w-4" />
-                Scrape & Add Product
+                {t('quickAdd.button')}
               </>
             )}
           </Button>

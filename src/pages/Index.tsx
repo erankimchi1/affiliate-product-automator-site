@@ -364,6 +364,7 @@ const Index = () => {
         showWishlist={showWishlist}
         showAdminButton={showAdminButton}
         onAdminClick={handleAdminClick}
+        showLanguageSwitcher={true}
       />
 
       {/* Admin Panel */}

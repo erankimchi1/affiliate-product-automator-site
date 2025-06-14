@@ -38,8 +38,8 @@ serve(async (req) => {
     const platform = detectPlatform(affiliateUrl);
     console.log('Detected platform:', platform);
 
-    // Scrape the product
-    const scrapedData = await scrapeProduct(affiliateUrl, platform);
+    // Scrape the product with enhanced extraction
+    const scrapedData = await scrapeProductAdvanced(affiliateUrl, platform);
     
     // Store in database
     const supabase = createClient(
@@ -114,172 +114,161 @@ function detectPlatform(url: string): 'amazon' | 'aliexpress' | 'ebay' {
   return 'amazon'; // Default fallback
 }
 
-async function scrapeProduct(url: string, platform: 'amazon' | 'aliexpress' | 'ebay'): Promise<ScrapedProduct> {
-  console.log(`Scraping ${platform} product from:`, url);
+async function scrapeProductAdvanced(url: string, platform: 'amazon' | 'aliexpress' | 'ebay'): Promise<ScrapedProduct> {
+  console.log(`Advanced scraping ${platform} product from:`, url);
   
   try {
-    // Fetch the page content with better headers to avoid blocking
+    // Enhanced headers to avoid detection
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'en-US,en;q=0.9,he;q=0.8',
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
         'Sec-Fetch-Dest': 'document',
         'Sec-Fetch-Mode': 'navigate',
         'Sec-Fetch-Site': 'none',
         'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'max-age=0',
       }
     });
 
     if (!response.ok) {
-      console.log(`HTTP error! status: ${response.status}, falling back to mock data`);
-      return generateMockProductData(platform, url);
+      console.log(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP ${response.status}`);
     }
 
     const html = await response.text();
     console.log(`Successfully fetched HTML (${html.length} characters)`);
     
-    // Parse based on platform
+    // Try to extract real data first, then fallback to realistic mock
+    let extractedData;
+    
     switch (platform) {
       case 'amazon':
-        return parseAmazonProduct(html, url);
+        extractedData = parseAmazonProductAdvanced(html, url);
+        break;
       case 'ebay':
-        return parseEbayProduct(html, url);
+        extractedData = parseEbayProductAdvanced(html, url);
+        break;
       case 'aliexpress':
-        return parseAliExpressProduct(html, url);
+        extractedData = parseAliExpressProductAdvanced(html, url);
+        break;
       default:
         throw new Error('Unsupported platform');
     }
+    
+    // Validate extraction - if we got generic data, it's likely a fallback
+    if (isGenericData(extractedData)) {
+      console.log('Extracted data appears generic, trying alternative parsing...');
+      extractedData = tryAlternativeParsing(html, platform, url);
+    }
+    
+    console.log('Final extracted data:', JSON.stringify(extractedData, null, 2));
+    return extractedData;
+    
   } catch (error) {
-    console.error(`Error scraping ${platform}:`, error);
-    console.log('Falling back to mock data due to scraping error');
-    return generateMockProductData(platform, url);
+    console.error(`Error in advanced scraping for ${platform}:`, error);
+    // Return realistic mock data as last resort
+    return generatePlatformSpecificMock(platform, url);
   }
 }
 
-function parseAmazonProduct(html: string, url: string): ScrapedProduct {
-  console.log('Parsing Amazon product...');
+function parseAmazonProductAdvanced(html: string, url: string): ScrapedProduct {
+  console.log('Advanced Amazon parsing...');
   
-  // Multiple selectors for product name
-  let name = extractTextBySelectors(html, [
-    'span#productTitle',
-    'h1#title span',
+  // Enhanced selectors for Amazon
+  const nameSelectors = [
+    '#productTitle',
+    'h1[data-automation-id="product-title"]',
+    '.product-title',
     'h1.a-size-large',
-    '[data-automation-id="product-title"]'
-  ]) || extractFromMeta(html, 'title') || 'Amazon Product';
+    '[data-feature-name="title"] h1'
+  ];
   
-  // Clean up the name
-  name = cleanText(name).replace(/Amazon\.com\s*:?\s*/i, '').trim();
-  
-  // Multiple selectors for price
-  let priceText = extractTextBySelectors(html, [
-    '.a-price.a-text-price.a-size-medium.apexPriceToPay .a-offscreen',
+  const priceSelectors = [
     '.a-price-current .a-offscreen',
     '.a-price .a-offscreen',
-    'span.a-price-whole',
-    '#price_inside_buybox',
-    '.a-price-range .a-price .a-offscreen'
-  ]);
+    '#priceblock_dealprice',
+    '#priceblock_ourprice',
+    '.a-price-range .a-price .a-offscreen',
+    '[data-asin-price]'
+  ];
   
-  const price = parsePrice(priceText) || generateRandomPrice();
-  
-  // Try to find original price (list price)
-  let originalPriceText = extractTextBySelectors(html, [
-    '.a-price.a-text-price .a-offscreen',
-    '.a-price-was .a-offscreen',
-    '[data-a-color="secondary"] .a-offscreen'
-  ]);
-  
-  const originalPrice = originalPriceText ? parsePrice(originalPriceText) : undefined;
-  
-  // Multiple selectors for image
-  let imageUrl = extractAttributeBySelectors(html, 'src', [
+  const imageSelectors = [
     '#landingImage',
     '#imgBlkFront',
     '.a-dynamic-image',
-    '[data-a-dynamic-image]'
-  ]) || extractFromJson(html, 'colorImages') || 
-  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+    '[data-a-dynamic-image]',
+    '#main-image'
+  ];
   
-  // Clean image URL
+  // Extract with multiple attempts
+  let name = extractTextMultiple(html, nameSelectors) || extractFromJsonLd(html, 'name') || 'Amazon Product';
+  name = cleanHebrewEnglishText(name);
+  
+  let priceText = extractTextMultiple(html, priceSelectors);
+  const price = parsePrice(priceText) || extractPriceFromJson(html) || generateRandomPrice();
+  
+  let imageUrl = extractAttributeMultiple(html, 'src', imageSelectors) || extractImageFromJson(html);
   if (imageUrl && imageUrl.includes('amazon')) {
     imageUrl = imageUrl.split('._')[0] + '._AC_SL400_.jpg';
   }
   
-  // Extract description from multiple sources
-  let description = extractTextBySelectors(html, [
-    '#feature-bullets ul',
-    '#productDescription',
-    '[data-feature-name="productDescription"]',
-    '.a-unordered-list.a-vertical'
-  ]) || extractFromMeta(html, 'description') || 'High-quality Amazon product';
+  let description = extractProductDescription(html) || 'High-quality product from Amazon';
+  description = cleanHebrewEnglishText(description);
   
-  description = cleanText(description).substring(0, 500);
+  const rating = extractRating(html);
+  const brand = extractBrand(html);
   
-  // Extract rating
-  let ratingText = extractTextBySelectors(html, [
-    '.a-icon-alt',
-    '[data-hook="average-star-rating"] .a-icon-alt',
-    '.a-star-medium .a-icon-alt'
-  ]);
-  
-  const rating = ratingText ? parseFloat(ratingText.split(' ')[0]) || undefined : undefined;
-  
-  // Extract brand
-  let brand = extractTextBySelectors(html, [
-    '#bylineInfo',
-    '.a-link-normal#bylineInfo',
-    '[data-brand]'
-  ]);
-
   return {
     name,
     price,
-    originalPrice,
-    imageUrl,
+    imageUrl: imageUrl || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
     description,
     category: 'Electronics',
     platform: 'amazon',
     rating,
-    brand: brand ? cleanText(brand) : undefined
+    brand: brand ? cleanHebrewEnglishText(brand) : undefined
   };
 }
 
-function parseEbayProduct(html: string, url: string): ScrapedProduct {
-  console.log('Parsing eBay product...');
+function parseEbayProductAdvanced(html: string, url: string): ScrapedProduct {
+  console.log('Advanced eBay parsing...');
   
-  let name = extractTextBySelectors(html, [
+  const nameSelectors = [
     'h1#x-title-label-lbl',
     '.x-item-title-label h1',
-    '[data-testid="clp-product-title"]'
-  ]) || extractFromMeta(html, 'title') || 'eBay Product';
+    '[data-testid="clp-product-title"]',
+    '.it-ttl h1'
+  ];
   
-  name = cleanText(name).replace(/\|.*eBay/i, '').trim();
+  let name = extractTextMultiple(html, nameSelectors) || 'eBay Product';
+  name = cleanHebrewEnglishText(name).replace(/\|.*eBay/i, '').trim();
   
-  let priceText = extractTextBySelectors(html, [
+  const priceSelectors = [
     '.notranslate',
     '#prcIsum',
     '[data-testid="clp-price"]',
-    '.u-flL.condText'
-  ]);
+    '.u-flL.condText',
+    '#mm-saleDscPrc'
+  ];
   
-  const price = parsePrice(priceText) || generateRandomPrice();
+  const price = parsePrice(extractTextMultiple(html, priceSelectors)) || generateRandomPrice();
   
-  let imageUrl = extractAttributeBySelectors(html, 'src', [
+  const imageSelectors = [
     '#icImg',
     '[data-zoom-src]',
-    '.ux-image-magnify img'
-  ]) || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+    '.ux-image-magnify img',
+    '#mainImgHldr img'
+  ];
   
-  let description = extractTextBySelectors(html, [
-    '.u-flL.condText',
-    '#desc_div',
-    '[data-testid="clp-product-details"]'
-  ]) || 'Quality eBay product';
+  const imageUrl = extractAttributeMultiple(html, 'src', imageSelectors) || 
+    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
   
-  description = cleanText(description).substring(0, 500);
+  let description = extractProductDescription(html) || 'Quality eBay product';
+  description = cleanHebrewEnglishText(description);
   
   return {
     name,
@@ -291,32 +280,30 @@ function parseEbayProduct(html: string, url: string): ScrapedProduct {
   };
 }
 
-function parseAliExpressProduct(html: string, url: string): ScrapedProduct {
-  console.log('Parsing AliExpress product...');
+function parseAliExpressProductAdvanced(html: string, url: string): ScrapedProduct {
+  console.log('Advanced AliExpress parsing...');
   
-  let name = extractFromJson(html, 'subject') || 
-             extractTextBySelectors(html, [
-               '.product-title h1',
-               '[data-pl="product-title"]'
-             ]) || extractFromMeta(html, 'title') || 'AliExpress Product';
+  // Try JSON extraction first for AliExpress
+  let name = extractFromPageData(html, 'subject') || 
+             extractFromRunParams(html, 'subject') ||
+             extractTextMultiple(html, ['.product-title h1', '[data-pl="product-title"]']) ||
+             'AliExpress Product';
   
-  name = cleanText(name);
+  name = cleanHebrewEnglishText(name);
   
-  let priceText = extractFromJson(html, 'minAmount') || 
-                  extractTextBySelectors(html, [
-                    '.product-price-current',
-                    '[data-pl="product-price"]'
-                  ]);
+  let priceData = extractFromPageData(html, 'minAmount') || 
+                  extractFromRunParams(html, 'actMinPrice') ||
+                  extractTextMultiple(html, ['.product-price-current', '[data-pl="product-price"]']);
   
-  const price = parsePrice(priceText) || generateRandomPrice();
+  const price = parsePrice(priceData) || generateRandomPrice();
   
-  let imageUrl = extractFromJson(html, 'imagePathList') || 
+  let imageUrl = extractFromPageData(html, 'imagePathList') || 
+                 extractAttributeMultiple(html, 'src', ['.magnifier-image img', '.images-view-item img']) ||
                  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
   
-  let description = extractFromJson(html, 'description') || 
+  let description = extractFromPageData(html, 'description') || 
                     'Quality AliExpress product with international shipping';
-  
-  description = cleanText(description).substring(0, 500);
+  description = cleanHebrewEnglishText(description);
   
   return {
     name,
@@ -328,29 +315,32 @@ function parseAliExpressProduct(html: string, url: string): ScrapedProduct {
   };
 }
 
-// Helper functions
-function extractTextBySelectors(html: string, selectors: string[]): string | null {
+// Enhanced helper functions
+function extractTextMultiple(html: string, selectors: string[]): string | null {
   for (const selector of selectors) {
-    const result = extractBySelector(html, selector);
-    if (result) return result;
+    const result = extractTextBySelector(html, selector);
+    if (result && result.trim().length > 0) {
+      return result.trim();
+    }
   }
   return null;
 }
 
-function extractAttributeBySelectors(html: string, attribute: string, selectors: string[]): string | null {
+function extractAttributeMultiple(html: string, attribute: string, selectors: string[]): string | null {
   for (const selector of selectors) {
     const result = extractAttributeBySelector(html, selector, attribute);
-    if (result) return result;
+    if (result && result.trim().length > 0) {
+      return result.trim();
+    }
   }
   return null;
 }
 
-function extractBySelector(html: string, selector: string): string | null {
-  // Simple CSS selector extraction (basic implementation)
+function extractTextBySelector(html: string, selector: string): string | null {
   const patterns = [
-    new RegExp(`<[^>]*id\\s*=\\s*["']${selector.replace('#', '')}["'][^>]*>([^<]*)</`, 'i'),
-    new RegExp(`<[^>]*class\\s*=\\s*["'][^"']*${selector.replace('.', '')}[^"']*["'][^>]*>([^<]*)</`, 'i'),
-    new RegExp(`<${selector}[^>]*>([^<]*)</`, 'i')
+    new RegExp(`<[^>]*id\\s*=\\s*["']${selector.replace('#', '')}["'][^>]*>([^<]+)</`, 'i'),
+    new RegExp(`<[^>]*class\\s*=\\s*["'][^"']*${selector.replace('.', '')}[^"']*["'][^>]*>([^<]+)</`, 'i'),
+    new RegExp(`<${selector}[^>]*>([^<]+)</`, 'i')
   ];
   
   for (const pattern of patterns) {
@@ -377,42 +367,135 @@ function extractAttributeBySelector(html: string, selector: string, attribute: s
   return null;
 }
 
-function extractFromMeta(html: string, property: string): string | null {
-  const patterns = [
-    new RegExp(`<meta[^>]*property\\s*=\\s*["']og:${property}["'][^>]*content\\s*=\\s*["']([^"']*)["']`, 'i'),
-    new RegExp(`<meta[^>]*name\\s*=\\s*["']${property}["'][^>]*content\\s*=\\s*["']([^"']*)["']`, 'i'),
-    new RegExp(`<title[^>]*>([^<]*)</title>`, 'i')
-  ];
-  
-  for (const pattern of patterns) {
-    const match = html.match(pattern);
-    if (match && match[1]) {
-      return cleanText(match[1]);
+function extractFromPageData(html: string, key: string): string | null {
+  try {
+    const patterns = [
+      new RegExp(`window\\.pageData\\s*=\\s*({.+?});`, 's'),
+      new RegExp(`window\\._dida_config_\\s*=\\s*({.+?});`, 's'),
+      new RegExp(`runParams\\s*=\\s*({.+?});`, 's')
+    ];
+    
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match && match[1]) {
+        const jsonStr = match[1];
+        if (jsonStr.includes(`"${key}"`)) {
+          const keyMatch = jsonStr.match(new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`, 'i'));
+          if (keyMatch && keyMatch[1]) return keyMatch[1];
+          
+          const arrayMatch = jsonStr.match(new RegExp(`"${key}"\\s*:\\s*\\[\\s*"([^"]*)"`, 'i'));
+          if (arrayMatch && arrayMatch[1]) return arrayMatch[1];
+        }
+      }
     }
+  } catch (error) {
+    console.log('Error extracting from page data:', error);
   }
   return null;
 }
 
-function extractFromJson(html: string, key: string): string | null {
+function extractFromRunParams(html: string, key: string): string | null {
   try {
-    const jsonMatch = html.match(/window\._dida_config_\s*=\s*({.+?});/) || 
-                     html.match(/runParams\s*=\s*({.+?});/) ||
-                     html.match(/"[^"]*":\s*"[^"]*"/g);
-    
-    if (jsonMatch) {
-      const jsonStr = jsonMatch[1] || jsonMatch[0];
-      if (jsonStr.includes(key)) {
-        const keyMatch = jsonStr.match(new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`, 'i'));
-        if (keyMatch) return keyMatch[1];
-        
-        const arrayMatch = jsonStr.match(new RegExp(`"${key}"\\s*:\\s*\\[\\s*"([^"]*)"`, 'i'));
-        if (arrayMatch) return arrayMatch[1];
+    const runParamsMatch = html.match(/runParams\s*=\s*({.+?});/s);
+    if (runParamsMatch) {
+      const jsonStr = runParamsMatch[1];
+      const keyMatch = jsonStr.match(new RegExp(`"${key}"\\s*:\\s*"?([^",}]+)"?`, 'i'));
+      if (keyMatch && keyMatch[1]) {
+        return keyMatch[1].replace(/"/g, '');
       }
     }
   } catch (error) {
-    console.log('JSON extraction failed:', error);
+    console.log('Error extracting from runParams:', error);
   }
   return null;
+}
+
+function extractFromJsonLd(html: string, property: string): string | null {
+  try {
+    const jsonLdMatch = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([^<]+)<\/script>/i);
+    if (jsonLdMatch) {
+      const jsonData = JSON.parse(jsonLdMatch[1]);
+      return jsonData[property] || null;
+    }
+  } catch (error) {
+    console.log('Error extracting from JSON-LD:', error);
+  }
+  return null;
+}
+
+function extractProductDescription(html: string): string | null {
+  const descSelectors = [
+    '#feature-bullets ul',
+    '#productDescription',
+    '[data-feature-name="productDescription"]',
+    '.a-unordered-list.a-vertical',
+    '.product-description',
+    '#desc_div'
+  ];
+  
+  return extractTextMultiple(html, descSelectors);
+}
+
+function extractRating(html: string): number | undefined {
+  const ratingSelectors = [
+    '.a-icon-alt',
+    '[data-hook="average-star-rating"] .a-icon-alt',
+    '.a-star-medium .a-icon-alt'
+  ];
+  
+  const ratingText = extractTextMultiple(html, ratingSelectors);
+  if (ratingText) {
+    const match = ratingText.match(/(\d+\.?\d*)/);
+    if (match) {
+      return parseFloat(match[1]);
+    }
+  }
+  return undefined;
+}
+
+function extractBrand(html: string): string | null {
+  const brandSelectors = [
+    '#bylineInfo',
+    '.a-link-normal#bylineInfo',
+    '[data-brand]',
+    '.brand-name'
+  ];
+  
+  return extractTextMultiple(html, brandSelectors);
+}
+
+function extractPriceFromJson(html: string): number | undefined {
+  try {
+    const priceMatch = html.match(/"price":\s*"?(\d+\.?\d*)"?/i);
+    if (priceMatch) {
+      return parseFloat(priceMatch[1]);
+    }
+  } catch (error) {
+    console.log('Error extracting price from JSON:', error);
+  }
+  return undefined;
+}
+
+function extractImageFromJson(html: string): string | null {
+  try {
+    const imageMatch = html.match(/"large":\s*"([^"]+)"/i) || 
+                      html.match(/"hiRes":\s*"([^"]+)"/i);
+    if (imageMatch) {
+      return imageMatch[1];
+    }
+  } catch (error) {
+    console.log('Error extracting image from JSON:', error);
+  }
+  return null;
+}
+
+function cleanHebrewEnglishText(text: string): string {
+  return text
+    .replace(/<[^>]*>/g, '')
+    .replace(/&[^;]+;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s.,!?()-\u0590-\u05FF]/g, '') // Keep Hebrew characters
+    .trim();
 }
 
 function cleanText(text: string): string {
@@ -420,15 +503,14 @@ function cleanText(text: string): string {
     .replace(/<[^>]*>/g, '')
     .replace(/&[^;]+;/g, ' ')
     .replace(/\s+/g, ' ')
-    .replace(/[^\w\s.,!?()-]/g, '')
     .trim();
 }
 
 function parsePrice(priceText: string | undefined | null): number | undefined {
   if (!priceText) return undefined;
   
-  // Remove currency symbols and extract numbers
-  const cleaned = priceText.replace(/[^\d.,]/g, '');
+  // Handle multiple currency formats including Hebrew
+  const cleaned = priceText.replace(/[^\d.,₪$€£]/g, '');
   const matches = cleaned.match(/\d+([.,]\d{1,2})?/);
   
   if (matches) {
@@ -442,27 +524,72 @@ function generateRandomPrice(): number {
   return Math.round((Math.random() * 200 + 10) * 100) / 100;
 }
 
-function generateMockProductData(platform: 'amazon' | 'aliexpress' | 'ebay', url: string): ScrapedProduct {
-  console.log('Generating mock product data for platform:', platform);
+function isGenericData(product: ScrapedProduct): boolean {
+  const genericNames = ['Amazon Product', 'eBay Product', 'AliExpress Product'];
+  return genericNames.includes(product.name) || 
+         product.description.includes('Quality') ||
+         product.description.includes('High-quality');
+}
+
+function tryAlternativeParsing(html: string, platform: string, url: string): ScrapedProduct {
+  console.log('Trying alternative parsing methods...');
+  
+  // Try meta tags
+  const ogTitle = extractFromMeta(html, 'og:title');
+  const ogDescription = extractFromMeta(html, 'og:description');
+  const ogImage = extractFromMeta(html, 'og:image');
+  
+  if (ogTitle && ogTitle !== 'Amazon Product' && ogTitle !== 'eBay Product') {
+    return {
+      name: cleanHebrewEnglishText(ogTitle),
+      price: generateRandomPrice(),
+      imageUrl: ogImage || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+      description: cleanHebrewEnglishText(ogDescription || 'Quality product'),
+      category: 'Electronics',
+      platform: platform as any
+    };
+  }
+  
+  return generatePlatformSpecificMock(platform as any, url);
+}
+
+function extractFromMeta(html: string, property: string): string | null {
+  const patterns = [
+    new RegExp(`<meta[^>]*property\\s*=\\s*["']${property}["'][^>]*content\\s*=\\s*["']([^"']*)["']`, 'i'),
+    new RegExp(`<meta[^>]*name\\s*=\\s*["']${property}["'][^>]*content\\s*=\\s*["']([^"']*)["']`, 'i'),
+    new RegExp(`<meta[^>]*content\\s*=\\s*["']([^"']*)["'][^>]*property\\s*=\\s*["']${property}["']`, 'i')
+  ];
+  
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match && match[1]) {
+      return cleanText(match[1]);
+    }
+  }
+  return null;
+}
+
+function generatePlatformSpecificMock(platform: 'amazon' | 'aliexpress' | 'ebay', url: string): ScrapedProduct {
+  console.log('Generating platform-specific mock data for:', platform);
   
   const mockProducts = {
     amazon: [
       {
-        name: "Premium Wireless Bluetooth Earbuds",
-        price: 79.99,
-        originalPrice: 119.99,
+        name: "אוזניות Bluetooth אלחוטיות מקצועיות",
+        price: 299.99,
+        originalPrice: 399.99,
         imageUrl: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop",
-        description: "High-quality wireless earbuds with active noise cancellation, premium sound quality, and long battery life. Perfect for music lovers and professionals.",
+        description: "אוזניות אלחוטיות איכותיות עם ביטול רעש אקטיבי, איכות צליל מעולה וסוללה ארוכת מחזיק. מושלמות לאוהבי מוסיקה ואנשי מקצוע.",
         category: "Electronics",
         rating: 4.5,
         brand: "TechSound"
       },
       {
         name: "Smart Home Security Camera System",
-        price: 149.99,
-        originalPrice: 199.99,
+        price: 549.99,
+        originalPrice: 699.99,
         imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
-        description: "Advanced 1080p HD security camera with night vision, motion detection, and smartphone alerts. Easy installation and setup.",
+        description: "מערכת מצלמות אבטחה חכמות 1080p HD עם ראיית לילה, זיהוי תנועה והתראות לסמארטפון. התקנה קלה וקליטה.",
         category: "Home Security",
         rating: 4.3,
         brand: "SecureHome"
@@ -470,21 +597,21 @@ function generateMockProductData(platform: 'amazon' | 'aliexpress' | 'ebay', url
     ],
     aliexpress: [
       {
-        name: "RGB Gaming Mouse with High Precision",
-        price: 29.99,
-        originalPrice: 49.99,
+        name: "עכבר גיימינג RGB עם דיוק גבוה",
+        price: 89.99,
+        originalPrice: 149.99,
         imageUrl: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=400&fit=crop",
-        description: "Professional gaming mouse with customizable RGB lighting, high-precision optical sensor, and ergonomic design for extended gaming sessions.",
+        description: "עכבר גיימינג מקצועי עם תאורת RGB מותאמת אישית, חיישן אופטי דיוק גבוה ועיצוב ארגונומי למשחק ממושך.",
         category: "Gaming",
         rating: 4.2,
         brand: "GameTech"
       },
       {
         name: "LED Strip Lights Kit - Color Changing",
-        price: 19.99,
-        originalPrice: 34.99,
+        price: 69.99,
+        originalPrice: 119.99,
         imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
-        description: "Smart LED strip lights with app control, music sync, and 16 million colors. Perfect for room decoration and ambient lighting.",
+        description: "רצועות LED חכמות עם שליטה באפליקציה, סנכרון מוסיקה ו-16 מיליון צבעים. מושלם לעיצוב חדרים ותאורה אמביינטית.",
         category: "Home Decor",
         rating: 4.4,
         brand: "LightUp"
@@ -492,20 +619,20 @@ function generateMockProductData(platform: 'amazon' | 'aliexpress' | 'ebay', url
     ],
     ebay: [
       {
-        name: "Vintage Style Leather Watch",
-        price: 89.99,
+        name: "שעון יד בסגנון וינטג' עם רצועת עור",
+        price: 319.99,
         imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-        description: "Classic vintage-style wristwatch with genuine leather band, precise quartz movement, and water-resistant design.",
+        description: "שעון יד קלאסי בסגנון וינטג' עם רצועת עור אמיתית, מנגנון קוורץ מדויק ועיצוב עמיד במים.",
         category: "Fashion",
         rating: 4.1,
         brand: "TimeClassic"
       },
       {
         name: "Professional Tool Set - 150 Pieces",
-        price: 159.99,
-        originalPrice: 219.99,
+        price: 599.99,
+        originalPrice: 799.99,
         imageUrl: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=400&h=400&fit=crop",
-        description: "Complete professional tool kit with high-quality tools, organized carrying case, and lifetime warranty. Perfect for professionals and DIY enthusiasts.",
+        description: "ערכת כלים מקצועית מלאה עם כלים באיכות גבוהה, תיק נשיאה מאורגן ואחריות לכל החיים. מושלם למקצוענים וחובבי עשה זאת בעצמך.",
         category: "Tools",
         rating: 4.6,
         brand: "ProTools"

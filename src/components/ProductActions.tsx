@@ -32,7 +32,7 @@ export const ProductActions = ({
   if (compact) return null;
 
   return (
-    <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+    <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
       <Button
         size="sm"
         variant="secondary"
@@ -51,7 +51,7 @@ export const ProductActions = ({
           <Share2 size={16} />
         </Button>
         {showShare && (
-          <div className="absolute top-0 right-10 z-50">
+          <div className="absolute top-0 right-10 z-[100]">
             <SocialShare product={product} onClose={() => setShowShare(false)} />
           </div>
         )}

@@ -1,5 +1,4 @@
 
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/Product";
@@ -30,7 +29,6 @@ export const SocialShare = ({ product, onClose }: SocialShareProps) => {
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      // You could add a toast notification here
       console.log('Link copied to clipboard');
       onClose();
     } catch (err) {
@@ -39,10 +37,10 @@ export const SocialShare = ({ product, onClose }: SocialShareProps) => {
   };
 
   return (
-    <Card className="w-52 shadow-lg border border-gray-200 dark:border-gray-600">
+    <Card className="w-52 shadow-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 z-[100]">
       <CardContent className="p-3">
         <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">Share this deal</h4>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-80 overflow-y-auto">
           <Button
             size="sm"
             variant="outline"
@@ -104,4 +102,3 @@ export const SocialShare = ({ product, onClose }: SocialShareProps) => {
     </Card>
   );
 };
-

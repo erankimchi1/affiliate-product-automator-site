@@ -1,47 +1,55 @@
 
-import { useState, useEffect } from "react";
-import { Clock } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Clock } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface UrgentDealTimerProps {
-  expiryTime: string;
-  onExpire?: () => void;
+  expiryDate?: string;
+  className?: string;
 }
 
-export const UrgentDealTimer = ({ expiryTime, onExpire }: UrgentDealTimerProps) => {
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+export const UrgentDealTimer = ({ expiryDate, className = "" }: UrgentDealTimerProps) => {
+  const { t } = useLanguage();
+  const [timeLeft, setTimeLeft] = useState<{
+    hours: number;
+    minutes: number;
+    seconds: number;
+  } | null>(null);
 
   useEffect(() => {
+    if (!expiryDate) return;
+
     const calculateTimeLeft = () => {
-      const now = new Date().getTime();
-      const expiry = new Date(expiryTime).getTime();
-      const difference = expiry - now;
+      const difference = new Date(expiryDate).getTime() - new Date().getTime();
       
-      if (difference <= 0) {
-        setTimeLeft(0);
-        onExpire?.();
-        return;
+      if (difference > 0) {
+        const hours = Math.floor(difference / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        
+        setTimeLeft({ hours, minutes, seconds });
+      } else {
+        setTimeLeft(null);
       }
-      
-      setTimeLeft(difference);
     };
 
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [expiryTime, onExpire]);
+  }, [expiryDate]);
 
-  if (timeLeft <= 0) return null;
-
-  const seconds = Math.floor((timeLeft / 1000) % 60);
-  const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
-  const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+  if (!timeLeft || !expiryDate) {
+    return null;
+  }
 
   return (
-    <div className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center gap-2 animate-pulse">
+    <div className={`flex items-center gap-2 text-red-600 dark:text-red-400 font-medium ${className}`}>
       <Clock size={16} />
-      <span className="font-bold text-sm">
-        Deal expires in: {hours > 0 && `${hours}h `}{minutes}m {seconds}s
+      <span className="text-sm">
+        {t('timer.endsIn')}: {String(timeLeft.hours).padStart(2, '0')}:
+        {String(timeLeft.minutes).padStart(2, '0')}:
+        {String(timeLeft.seconds).padStart(2, '0')}
       </span>
     </div>
   );

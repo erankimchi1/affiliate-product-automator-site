@@ -15,8 +15,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { generateSEODescription, generateProductKeywords } from "@/utils/seoGenerator";
 
-const ADMIN_KEY = "adminMode";
-const ADMIN_PASSWORD = "supersecret"; // CHANGE THIS to your own secret!
+const ADMIN_VISIBILITY_KEY = "showAdminButton";
 
 const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -28,9 +27,9 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [darkMode, setDarkMode] = useLocalStorage("darkMode", false);
   const [wishlist, setWishlist] = useLocalStorage("wishlist", []);
-  const [adminAuth, setAdminAuth] = useState(() => {
+  const [showAdminButton, setShowAdminButton] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem(ADMIN_KEY) === "true";
+      return localStorage.getItem(ADMIN_VISIBILITY_KEY) === "true";
     }
     return false;
   });
@@ -319,15 +318,24 @@ const Index = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Secret key combination to show admin button: Ctrl+Shift+A
       if (event.ctrlKey && event.shiftKey && event.key === 'A') {
         event.preventDefault();
-        handleAdminClick();
+        const newVisibility = !showAdminButton;
+        setShowAdminButton(newVisibility);
+        localStorage.setItem(ADMIN_VISIBILITY_KEY, newVisibility.toString());
+        if (newVisibility) {
+          console.log("Admin button is now visible");
+        } else {
+          console.log("Admin button is now hidden");
+          setShowAdmin(false); // Close admin panel if open
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [adminAuth]);
+  }, [showAdminButton]);
 
   const categories = ["all", ...Array.from(new Set(products.map(p => p.category)))];
   const featuredProducts = products.filter(p => p.featured);
@@ -349,23 +357,12 @@ const Index = () => {
   }, []);
 
   const handleAdminClick = () => {
-    if (adminAuth) {
-      setShowAdmin(true);
-      return;
-    }
-    const password = window.prompt("🔐 Admin Access Required - Enter your personal admin password:");
-    if (password === ADMIN_PASSWORD) {
-      setAdminAuth(true);
-      localStorage.setItem(ADMIN_KEY, "true");
-      setShowAdmin(true);
-    } else if (password !== null) {
-      alert("❌ Access denied. This admin panel is restricted.");
-    }
+    setShowAdmin(true);
   };
 
   const handleAdminLogout = () => {
-    setAdminAuth(false);
-    localStorage.removeItem(ADMIN_KEY);
+    setShowAdminButton(false);
+    localStorage.removeItem(ADMIN_VISIBILITY_KEY);
     setShowAdmin(false);
   };
 
@@ -395,22 +392,24 @@ const Index = () => {
                 <Heart size={16} />
                 Wishlist ({wishlist.length})
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleAdminClick}
-                className="flex items-center gap-2"
-                title="Admin Panel (Ctrl+Shift+A)"
-              >
-                <Settings size={16} />
-                Admin
-              </Button>
+              {showAdminButton && (
+                <Button 
+                  variant="outline" 
+                  onClick={handleAdminClick}
+                  className="flex items-center gap-2"
+                  title="Admin Panel (Ctrl+Shift+A to toggle visibility)"
+                >
+                  <Settings size={16} />
+                  Admin
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </header>
 
       {/* Admin Panel */}
-      {showAdmin && adminAuth && (
+      {showAdmin && showAdminButton && (
         <AdminPanel 
           products={products} 
           setProducts={setProducts}

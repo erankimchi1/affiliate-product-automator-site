@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,9 +14,10 @@ interface AdminPanelProps {
   products: Product[];
   setProducts: (products: Product[]) => void;
   onClose: () => void;
+  onLogout?: () => void; // new prop for admin logout
 }
 
-export const AdminPanel = ({ products, setProducts, onClose }: AdminPanelProps) => {
+export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPanelProps) => {
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -115,9 +115,18 @@ export const AdminPanel = ({ products, setProducts, onClose }: AdminPanelProps) 
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h2>
-            <Button variant="outline" onClick={onClose}>
-              <X size={20} />
-            </Button>
+            <div className="flex gap-2">
+              {onLogout && (
+                <Button
+                  variant="secondary"
+                  onClick={onLogout}
+                  className="text-xs"
+                >Logout</Button>
+              )}
+              <Button variant="outline" onClick={onClose}>
+                <X size={20} />
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

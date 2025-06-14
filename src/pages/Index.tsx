@@ -15,6 +15,9 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { generateSEODescription, generateProductKeywords } from "@/utils/seoGenerator";
 
+const ADMIN_KEY = "adminMode";
+const ADMIN_PASSWORD = "supersecret"; // CHANGE THIS to your own secret!
+
 const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -25,6 +28,12 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [darkMode, setDarkMode] = useLocalStorage("darkMode", false);
   const [wishlist, setWishlist] = useLocalStorage("wishlist", []);
+  const [adminAuth, setAdminAuth] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(ADMIN_KEY) === "true";
+    }
+    return false;
+  });
   
   const productsPerPage = 8;
 
@@ -327,6 +336,27 @@ const Index = () => {
     }
   }, []);
 
+  const handleAdminClick = () => {
+    if (adminAuth) {
+      setShowAdmin(true);
+      return;
+    }
+    const password = window.prompt("Enter admin password:");
+    if (password === ADMIN_PASSWORD) {
+      setAdminAuth(true);
+      localStorage.setItem(ADMIN_KEY, "true");
+      setShowAdmin(true);
+    } else if (password !== null) {
+      alert("Incorrect password.");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setAdminAuth(false);
+    localStorage.removeItem(ADMIN_KEY);
+    setShowAdmin(false);
+  };
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
       {/* Header */}
@@ -355,7 +385,7 @@ const Index = () => {
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setShowAdmin(!showAdmin)}
+                onClick={handleAdminClick}
                 className="flex items-center gap-2"
               >
                 <Settings size={16} />
@@ -367,11 +397,12 @@ const Index = () => {
       </header>
 
       {/* Admin Panel */}
-      {showAdmin && (
+      {showAdmin && adminAuth && (
         <AdminPanel 
           products={products} 
           setProducts={setProducts}
           onClose={() => setShowAdmin(false)}
+          onLogout={handleAdminLogout}
         />
       )}
 

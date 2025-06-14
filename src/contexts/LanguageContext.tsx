@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface LanguageContextProps {
@@ -24,10 +25,13 @@ const translations = {
     },
     main: {
       featuredDeals: "Featured Deals",
+      featuredSubtitle: "Discover the best deals handpicked just for you",
       latestProducts: "Latest Products",
       latestGuides: "Latest Guides",
       guidesSubtitle: "Explore our latest tips, tricks, and recommendations.",
-      noProductsFound: "No products found in this category."
+      noProductsFound: "No products found in this category.",
+      exclusiveDeals: "Exclusive Deals",
+      exclusiveSubtitle: "Limited time offers available only to our members"
     },
     search: {
       placeholder: "Search for products...",
@@ -45,7 +49,20 @@ const translations = {
       exclusive: "Exclusive",
       urgentDeal: "Urgent Deal! Ends in",
       hours: "hours",
-      minutes: "minutes"
+      minutes: "minutes",
+      name: "Product Name",
+      price: "Price",
+      originalPrice: "Original Price", 
+      imageUrl: "Image URL",
+      description: "Description",
+      affiliateLink: "Affiliate Link",
+      category: "Category",
+      platform: "Platform",
+      featured: "Featured Product",
+      markAsNew: "Mark as New",
+      markAsTrending: "Mark as Trending",
+      new: "NEW",
+      trending: "TRENDING"
     },
     admin: {
       dashboard: "Admin Dashboard",
@@ -74,22 +91,6 @@ const translations = {
       linkPlaceholder: "Enter blog link...",
       publishedAt: "Published at"
     },
-    product: {
-      name: "Product Name",
-      price: "Price",
-      originalPrice: "Original Price", 
-      imageUrl: "Image URL",
-      description: "Description",
-      affiliateLink: "Affiliate Link",
-      category: "Category",
-      platform: "Platform",
-      rating: "Rating",
-      featured: "Featured Product",
-      markAsNew: "Mark as New",
-      markAsTrending: "Mark as Trending",
-      new: "NEW",
-      trending: "TRENDING"
-    },
     message: {
       fillRequiredFields: "Please fill in all required fields",
       blogSaved: "Blog post saved successfully",
@@ -107,7 +108,7 @@ const translations = {
       tools: "Tools",
       gaming: "Gaming",
       general: "General",
-	  import: "Import",
+      import: "Import",
       security: "Home Security",
       decor: "Home Decor"
     },
@@ -115,12 +116,25 @@ const translations = {
       readMore: "Read More",
       cancel: "Cancel",
       save: "Save",
-	  hide: "Hide",
-	  show: "Show",
-	  details: "Details"
+      hide: "Hide",
+      show: "Show",
+      details: "Details"
     },
     footer: {
-      copyright: "© {year} AffiliateHub Pro. All rights reserved."
+      copyright: "© {year} AffiliateHub Pro. All rights reserved.",
+      description: "Find the best deals from top e-commerce platforms",
+      categories: "Categories",
+      techElectronics: "Tech & Electronics",
+      homeKitchen: "Home & Kitchen",
+      fashionBeauty: "Fashion & Beauty",
+      toolsHardware: "Tools & Hardware",
+      features: "Features",
+      priceComparison: "Price Comparison",
+      exclusiveDeals: "Exclusive Deals",
+      recommendations: "Smart Recommendations",
+      mobileOptimized: "Mobile Optimized",
+      legal: "Legal",
+      affiliate: "We may earn a commission from qualifying purchases made through our affiliate links."
     }
   },
   he: {
@@ -134,10 +148,13 @@ const translations = {
     },
     main: {
       featuredDeals: "מבצעים מומלצים",
+      featuredSubtitle: "גלו את המבצעים הטובים ביותר שנבחרו במיוחד עבורכם",
       latestProducts: "המוצרים האחרונים",
       latestGuides: "המדריכים האחרונים",
       guidesSubtitle: "גלו את הטיפים, הטריקים וההמלצות האחרונות שלנו.",
-      noProductsFound: "לא נמצאו מוצרים בקטגוריה זו."
+      noProductsFound: "לא נמצאו מוצרים בקטגוריה זו.",
+      exclusiveDeals: "מבצעים בלעדיים",
+      exclusiveSubtitle: "הצעות מוגבלות בזמן זמינות רק לחברים שלנו"
     },
     search: {
       placeholder: "חפש מוצרים...",
@@ -155,7 +172,20 @@ const translations = {
       exclusive: "בלעדי",
       urgentDeal: "מבצע דחוף! מסתיים בעוד",
       hours: "שעות",
-      minutes: "דקות"
+      minutes: "דקות",
+      name: "שם המוצר",
+      price: "מחיר",
+      originalPrice: "מחיר מקורי",
+      imageUrl: "קישור לתמונה", 
+      description: "תיאור",
+      affiliateLink: "קישור שותפות",
+      category: "קטגוריה",
+      platform: "פלטפורמה",
+      featured: "מוצר מומלץ",
+      markAsNew: "סמן כחדש",
+      markAsTrending: "סמן כטרנדי",
+      new: "חדש",
+      trending: "טרנדי"
     },
     admin: {
       dashboard: "לוח בקרה למנהל",
@@ -184,22 +214,6 @@ const translations = {
       linkPlaceholder: "הכנס קישור לפוסט...",
       publishedAt: "פורסם ב"
     },
-    product: {
-      name: "שם המוצר",
-      price: "מחיר",
-      originalPrice: "מחיר מקורי",
-      imageUrl: "קישור לתמונה", 
-      description: "תיאור",
-      affiliateLink: "קישור שותפות",
-      category: "קטגוריה",
-      platform: "פלטפורמה",
-      rating: "דירוג",
-      featured: "מוצר מומלץ",
-      markAsNew: "סמן כחדש",
-      markAsTrending: "סמן כטרנדי",
-      new: "חדש",
-      trending: "טרנדי"
-    },
     message: {
       fillRequiredFields: "אנא מלא את כל השדות הנדרשים",
       blogSaved: "פוסט הבלוג נשמר בהצלחה",
@@ -217,7 +231,7 @@ const translations = {
       tools: "כלים",
       gaming: "גיימינג",
       general: "כללי",
-	  import: "יבוא",
+      import: "יבוא",
       security: "אבטחת בית",
       decor: "עיצוב הבית"
     },
@@ -225,12 +239,25 @@ const translations = {
       readMore: "קרא עוד",
       cancel: "בטל",
       save: "שמור",
-	  hide: "הסתר",
-	  show: "הצג",
-	  details: "פרטים"
+      hide: "הסתר",
+      show: "הצג",
+      details: "פרטים"
     },
     footer: {
-      copyright: "© {year} אפיליאציה האב פרו. כל הזכויות שמורות."
+      copyright: "© {year} אפיליאציה האב פרו. כל הזכויות שמורות.",
+      description: "מצא את המבצעים הטובים ביותר מפלטפורמות הקנייה המובילות",
+      categories: "קטגוריות",
+      techElectronics: "טכנולוגיה ואלקטרוניקה",
+      homeKitchen: "בית ומטבח",
+      fashionBeauty: "אופנה ויופי",
+      toolsHardware: "כלים וחומרה",
+      features: "תכונות",
+      priceComparison: "השוואת מחירים",
+      exclusiveDeals: "מבצעים בלעדיים",
+      recommendations: "המלצות חכמות",
+      mobileOptimized: "מותאם לנייד",
+      legal: "משפטי",
+      affiliate: "אנחנו עשויים לקבל עמלה מרכישות מתאימות שנעשות דרך קישורי השותפות שלנו."
     }
   }
 };
@@ -243,8 +270,15 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [language]);
 
   const t = (key: string) => {
+    const keys = key.split('.');
     const lang = language as keyof typeof translations;
-    return translations[lang]?.[key] || key;
+    let value: any = translations[lang];
+    
+    for (const k of keys) {
+      value = value?.[k];
+    }
+    
+    return value || key;
   };
 
   return (

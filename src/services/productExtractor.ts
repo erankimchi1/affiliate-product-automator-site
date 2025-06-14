@@ -16,10 +16,11 @@ interface ExtractedProductData {
 
 export class ProductExtractor {
   static async extractFromUrl(affiliateUrl: string): Promise<Partial<ExtractedProductData>> {
-    console.log("Starting enhanced product extraction for URL:", affiliateUrl);
+    console.log("Starting product extraction for URL:", affiliateUrl);
     
     try {
       // Call the Supabase Edge Function for real scraping
+      console.log("Calling Supabase edge function for scraping...");
       const { data, error } = await supabase.functions.invoke('scrape-product', {
         body: { url: affiliateUrl }
       });
@@ -29,9 +30,14 @@ export class ProductExtractor {
         throw new Error(`Scraping failed: ${error.message}`);
       }
 
-      if (!data || !data.success) {
-        console.error("Scraping failed:", data?.error);
-        throw new Error(data?.error || "Failed to scrape product");
+      if (!data) {
+        console.error("No data returned from scraping function");
+        throw new Error("No data returned from scraping function");
+      }
+
+      if (!data.success) {
+        console.error("Scraping failed:", data.error);
+        throw new Error(data.error || "Failed to scrape product");
       }
 
       console.log("Successfully scraped product:", data.product);
@@ -50,10 +56,10 @@ export class ProductExtractor {
       };
 
     } catch (error) {
-      console.error("Error in enhanced product extraction:", error);
+      console.error("Error in product extraction:", error);
       
-      // Fallback to enhanced mock data if real scraping fails
-      console.log("Falling back to enhanced mock data generation");
+      // Only fall back to mock data if there's a real network/service error
+      console.log("Falling back to enhanced mock data generation due to error:", error.message);
       const platform = this.detectPlatform(affiliateUrl);
       return this.generateEnhancedMockData(platform, affiliateUrl);
     }

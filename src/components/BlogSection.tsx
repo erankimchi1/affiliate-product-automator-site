@@ -1,34 +1,48 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Calendar } from "lucide-react";
+import { ExternalLink, Calendar, Plus, Edit, Trash2 } from "lucide-react";
 import { BlogPost } from "@/types/Product";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useState } from "react";
 
-export const BlogSection = () => {
-  const { t } = useLanguage();
+interface BlogSectionProps {
+  isAdmin?: boolean;
+  onEditBlog?: (blog: BlogPost) => void;
+  onDeleteBlog?: (blogId: string) => void;
+  onAddBlog?: () => void;
+}
+
+export const BlogSection = ({ isAdmin = false, onEditBlog, onDeleteBlog, onAddBlog }: BlogSectionProps) => {
+  const { t, language } = useLanguage();
 
   const blogPosts: BlogPost[] = [
     {
       id: "1",
-      title: "Top 10 Tech Deals This Week",
-      excerpt: "Discover amazing discounts on the latest gadgets and electronics that you don't want to miss.",
+      title: language === 'he' ? "10 מבצעי הטק הטובים ביותר השבוע" : "Top 10 Tech Deals This Week",
+      excerpt: language === 'he' 
+        ? "גלו הנחות מדהימות על הגאדג'טים והאלקטרוניקה החדשים ביותר שאתם לא רוצים לפספס."
+        : "Discover amazing discounts on the latest gadgets and electronics that you don't want to miss.",
       imageUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
       link: "#",
       publishedAt: "2024-01-15"
     },
     {
       id: "2",
-      title: "Best Home Kitchen Appliances Under $100",
-      excerpt: "Transform your kitchen without breaking the bank with these incredible budget-friendly finds.",
+      title: language === 'he' ? "מכשירי מטבח ביתיים הטובים ביותר מתחת ל-400₪" : "Best Home Kitchen Appliances Under $100",
+      excerpt: language === 'he'
+        ? "שנו את המטבח שלכם בלי לפוצץ את התקציב עם הממצאים המדהימים והחסכוניים האלה."
+        : "Transform your kitchen without breaking the bank with these incredible budget-friendly finds.",
       imageUrl: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
       link: "#",
       publishedAt: "2024-01-14"
     },
     {
       id: "3",
-      title: "Fashion Trends 2024: Affordable Style Guide",
-      excerpt: "Stay fashionable on a budget with our curated selection of trendy and affordable clothing.",
+      title: language === 'he' ? "טרנדי אופנה 2024: מדריך סטייל במחירים נוחים" : "Fashion Trends 2024: Affordable Style Guide",
+      excerpt: language === 'he'
+        ? "הישארו אופנתיים בתקציב מוגבל עם המבחר הנבחר שלנו של בגדים אופנתיים ובמחירים נגישים."
+        : "Stay fashionable on a budget with our curated selection of trendy and affordable clothing.",
       imageUrl: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&h=300&fit=crop",
       link: "#",
       publishedAt: "2024-01-13"
@@ -38,7 +52,15 @@ export const BlogSection = () => {
   return (
     <section className="mb-12">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('main.latestGuides')}</h2>
+        <div className="flex items-center justify-center gap-4 mb-2">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t('main.latestGuides')}</h2>
+          {isAdmin && (
+            <Button onClick={onAddBlog} size="sm" className="gap-2">
+              <Plus size={16} />
+              {t('admin.addBlog')}
+            </Button>
+          )}
+        </div>
         <p className="text-gray-600 dark:text-gray-300">{t('main.guidesSubtitle')}</p>
       </div>
       
@@ -51,11 +73,31 @@ export const BlogSection = () => {
                 alt={post.title}
                 className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
               />
+              {isAdmin && (
+                <div className="absolute top-2 right-2 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => onEditBlog?.(post)}
+                    className="opacity-80 hover:opacity-100"
+                  >
+                    <Edit size={14} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => onDeleteBlog?.(post.id)}
+                    className="opacity-80 hover:opacity-100"
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              )}
             </div>
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
                 <Calendar size={14} />
-                {new Date(post.publishedAt).toLocaleDateString()}
+                {new Date(post.publishedAt).toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US')}
               </div>
               <CardTitle className="text-lg text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {post.title}

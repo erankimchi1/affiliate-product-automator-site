@@ -13,7 +13,25 @@ export const CategoryFilter = ({ categories, selectedCategory, onCategoryChange 
 
   const getCategoryLabel = (category: string) => {
     if (category === "all") return t('category.all');
-    return t(`category.${category.toLowerCase()}`) || category;
+    
+    // Map category names to translation keys
+    const categoryMap: { [key: string]: string } = {
+      'electronics': 'category.electronics',
+      'tech': 'category.tech',
+      'home': 'category.home',
+      'fashion': 'category.fashion',
+      'tools': 'category.tools',
+      'gaming': 'category.gaming',
+      'general': 'category.general',
+      'import': 'category.import',
+      'home security': 'category.security',
+      'home decor': 'category.decor',
+      'security': 'category.security',
+      'decor': 'category.decor'
+    };
+
+    const translationKey = categoryMap[category.toLowerCase()];
+    return translationKey ? t(translationKey) : category;
   };
 
   return (

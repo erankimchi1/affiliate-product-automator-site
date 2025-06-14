@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'he';
@@ -143,7 +142,26 @@ const translations = {
     'common.readMore': 'Read More',
     'common.showMore': 'Show More',
     'common.showLess': 'Show Less',
-    'common.viewAll': 'View All'
+    'common.viewAll': 'View All',
+    
+    // Blog management
+    'admin.addBlog': 'Add Blog Post',
+    'admin.editBlog': 'Edit Blog Post',
+    'blog.title': 'Title',
+    'blog.titlePlaceholder': 'Enter blog post title...',
+    'blog.excerpt': 'Excerpt',
+    'blog.excerptPlaceholder': 'Enter a brief description of the blog post...',
+    'blog.imageUrl': 'Image URL',
+    'blog.imageUrlPlaceholder': 'https://example.com/image.jpg',
+    'blog.link': 'External Link',
+    'blog.linkPlaceholder': 'https://example.com/full-article',
+    'message.blogSaved': 'Blog post saved successfully!',
+    'message.fillRequiredFields': 'Please fill in all required fields',
+    
+    // Enhanced scraping messages
+    'message.scrapingReal': 'Using real product data scraping...',
+    'message.scrapingSuccess': 'Product successfully scraped from {platform}',
+    'message.scrapingFallback': 'Using enhanced product data...'
   },
   he: {
     // Header
@@ -277,7 +295,26 @@ const translations = {
     'common.readMore': 'קרא עוד',
     'common.showMore': 'הצג עוד',
     'common.showLess': 'הצג פחות',
-    'common.viewAll': 'צפה בהכל'
+    'common.viewAll': 'צפה בהכל',
+    
+    // Blog management
+    'admin.addBlog': 'הוסף פוסט בבלוג',
+    'admin.editBlog': 'ערוך פוסט בבלוג',
+    'blog.title': 'כותרת',
+    'blog.titlePlaceholder': 'הזן כותרת לפוסט הבלוג...',
+    'blog.excerpt': 'תקציר',
+    'blog.excerptPlaceholder': 'הזן תיאור קצר של פוסט הבלוג...',
+    'blog.imageUrl': 'קישור לתמונה',
+    'blog.imageUrlPlaceholder': 'https://example.com/image.jpg',
+    'blog.link': 'קישור חיצוני',
+    'blog.linkPlaceholder': 'https://example.com/full-article',
+    'message.blogSaved': 'פוסט הבלוג נשמר בהצלחה!',
+    'message.fillRequiredFields': 'אנא מלא את כל השדות הנדרשים',
+    
+    // Enhanced scraping messages
+    'message.scrapingReal': 'משתמש בגריפת נתונים אמיתית של המוצר...',
+    'message.scrapingSuccess': 'המוצר נגרף בהצלחה מ-{platform}',
+    'message.scrapingFallback': 'משתמש בנתוני מוצר משופרים...'
   }
 };
 

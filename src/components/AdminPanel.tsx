@@ -8,13 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { X, Plus, Trash2, Code, Webhook } from "lucide-react";
 import { Product } from "@/types/Product";
+import { QuickAddProduct } from "@/components/QuickAddProduct";
 import { toast } from "sonner";
 
 interface AdminPanelProps {
   products: Product[];
   setProducts: (products: Product[]) => void;
   onClose: () => void;
-  onLogout?: () => void; // new prop for admin logout
+  onLogout?: () => void;
 }
 
 export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPanelProps) => {
@@ -34,6 +35,10 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
   });
 
   const [showApiInfo, setShowApiInfo] = useState(false);
+
+  const handleProductAdd = (newProduct: Product) => {
+    setProducts([newProduct, ...products]);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +89,6 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
     toast.success("Product deleted successfully!");
   };
 
-  // Simulate webhook endpoint for automatic product addition
   const handleWebhookTest = () => {
     const testProduct = {
       name: "Auto-Added Test Product",
@@ -130,12 +134,15 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Add Product Form */}
+            {/* Quick Add Product */}
+            <QuickAddProduct onProductAdd={handleProductAdd} />
+
+            {/* Manual Add Product Form */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Plus size={20} />
-                  Add New Product
+                  Manual Add Product
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -274,42 +281,43 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
                 </form>
               </CardContent>
             </Card>
+          </div>
 
-            {/* API Integration & Product List */}
-            <div className="space-y-6">
-              {/* Webhook Integration */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Webhook size={20} />
-                    Automatic Product Integration
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowApiInfo(!showApiInfo)}
-                    >
-                      {showApiInfo ? 'Hide' : 'Show'} Details
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">Webhook Endpoint:</h4>
-                      <code className="block bg-gray-100 dark:bg-gray-700 p-2 rounded text-sm">
-                        POST https://your-domain.com/api/products/webhook
-                      </code>
-                    </div>
-                    <Button onClick={handleWebhookTest} className="w-full">
-                      Test Webhook (Add Sample Product)
-                    </Button>
+          {/* API Integration & Product List - moved to full width */}
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Webhook Integration */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Webhook size={20} />
+                  Automatic Product Integration
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowApiInfo(!showApiInfo)}
+                  >
+                    {showApiInfo ? 'Hide' : 'Show'} Details
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Webhook Endpoint:</h4>
+                    <code className="block bg-gray-100 dark:bg-gray-700 p-2 rounded text-sm">
+                      POST https://your-domain.com/api/products/webhook
+                    </code>
                   </div>
-                  
-                  {showApiInfo && (
-                    <div className="mt-4 space-y-4 text-sm">
-                      <div>
-                        <h4 className="font-semibold mb-2">Expected JSON Format:</h4>
-                        <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-xs overflow-x-auto">
+                  <Button onClick={handleWebhookTest} className="w-full">
+                    Test Webhook (Add Sample Product)
+                  </Button>
+                </div>
+                
+                {showApiInfo && (
+                  <div className="mt-4 space-y-4 text-sm">
+                    <div>
+                      <h4 className="font-semibold mb-2">Expected JSON Format:</h4>
+                      <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-xs overflow-x-auto">
 {`{
   "name": "Product Name",
   "price": 29.99,
@@ -324,12 +332,12 @@ export const AdminPanel = ({ products, setProducts, onClose, onLogout }: AdminPa
   "isNew": true,
   "isTrending": false
 }`}
-                        </pre>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-semibold mb-2">Python Script Example:</h4>
-                        <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-xs overflow-x-auto">
+                      </pre>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold mb-2">Python Script Example:</h4>
+                      <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-xs overflow-x-auto">
 {`import requests
 import json
 
@@ -365,43 +373,42 @@ product = {
 
 result = add_product_via_webhook(product)
 print(f"Product added: {result}")`}
-                        </pre>
-                      </div>
+                      </pre>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Current Products */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Current Products ({products.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {products.map((product) => (
-                      <div key={product.id} className="flex items-center justify-between p-3 border rounded bg-gray-50 dark:bg-gray-700">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            ${product.price} - {product.category}
-                            {product.isNew && <span className="ml-2 text-purple-600 font-semibold">NEW</span>}
-                            {product.isTrending && <span className="ml-2 text-pink-600 font-semibold">TRENDING</span>}
-                          </p>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(product.id)}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Current Products */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Products ({products.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {products.map((product) => (
+                    <div key={product.id} className="flex items-center justify-between p-3 border rounded bg-gray-50 dark:bg-gray-700">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          ${product.price} - {product.category}
+                          {product.isNew && <span className="ml-2 text-purple-600 font-semibold">NEW</span>}
+                          {product.isTrending && <span className="ml-2 text-pink-600 font-semibold">TRENDING</span>}
+                        </p>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(product.id)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

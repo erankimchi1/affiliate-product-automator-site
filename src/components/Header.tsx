@@ -8,22 +8,30 @@ interface HeaderProps {
   darkMode: boolean;
   setDarkMode: (value: boolean) => void;
   wishlist: string[];
-  setShowWishlist: (value: boolean) => void;
-  showWishlist: boolean;
+  onWishlistClick: () => void;
   showAdminButton: boolean;
   onAdminClick: () => void;
   showLanguageSwitcher?: boolean;
+  isLoggedIn?: boolean;
+  onLogin?: () => void;
+  onLogout?: () => void;
+  searchTerm?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export const Header = ({
   darkMode,
   setDarkMode,
   wishlist,
-  setShowWishlist,
-  showWishlist,
+  onWishlistClick,
   showAdminButton,
   onAdminClick,
-  showLanguageSwitcher = true
+  showLanguageSwitcher = true,
+  isLoggedIn = false,
+  onLogin,
+  onLogout,
+  searchTerm,
+  onSearchChange
 }: HeaderProps) => {
   const { t } = useLanguage();
 
@@ -47,7 +55,7 @@ export const Header = ({
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => setShowWishlist(!showWishlist)}
+              onClick={onWishlistClick}
               className="flex items-center gap-2"
             >
               <Heart size={16} />

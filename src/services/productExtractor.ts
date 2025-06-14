@@ -143,3 +143,34 @@ export const extractAffiliateInfo = (url: string) => {
   
   return null;
 };
+
+// ProductExtractor class for compatibility
+export class ProductExtractor {
+  static async extractFromUrl(url: string): Promise<ExtractedProduct> {
+    const result = await extractProductFromUrl(url);
+    if (!result) {
+      throw new Error('Failed to extract product data');
+    }
+    return result;
+  }
+
+  static createProductFromExtracted(extractedData: ExtractedProduct, affiliateUrl: string) {
+    return {
+      id: `product-${Date.now()}`,
+      name: extractedData.name,
+      price: extractedData.price,
+      originalPrice: extractedData.originalPrice,
+      image: extractedData.imageUrl,
+      description: extractedData.description,
+      affiliate_link: affiliateUrl,
+      platform: extractedData.platform,
+      rating: extractedData.rating || 0,
+      discount: extractedData.discount,
+      category: 'import',
+      featured: false,
+      isNew: true,
+      isTrending: false,
+      priceDropped: false
+    };
+  }
+}

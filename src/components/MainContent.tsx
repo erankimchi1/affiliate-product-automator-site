@@ -14,9 +14,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface MainContentProps {
   products: Product[];
   blogs: BlogPost[];
-  onAddToWishlist: (product: Product) => void;
-  onRemoveFromWishlist: (productId: string) => void;
-  wishlist: Product[];
+  wishlist: string[];
+  setWishlist: (wishlist: string[]) => void;
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
   searchTerm: string;
@@ -24,15 +23,14 @@ interface MainContentProps {
   isAdmin?: boolean;
   onEditBlog?: (blog: BlogPost) => void;
   onDeleteBlog?: (blogId: string) => void;
-  onAddBlog?: (blog: Omit<BlogPost, 'id'>) => void;
+  onAddBlog?: () => void;
 }
 
 export const MainContent = ({ 
   products, 
   blogs,
-  onAddToWishlist, 
-  onRemoveFromWishlist, 
-  wishlist, 
+  wishlist,
+  setWishlist,
   selectedCategory, 
   onCategoryChange, 
   searchTerm,
@@ -44,6 +42,9 @@ export const MainContent = ({
 }: MainContentProps) => {
   const { t } = useLanguage();
   const [visibleProducts, setVisibleProducts] = useState(12);
+
+  // Get unique categories from products
+  const categories = ['all', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
 
   const featuredProducts = products.filter(product => product.featured);
   const latestProducts = products.slice(0, visibleProducts);
@@ -67,6 +68,7 @@ export const MainContent = ({
   return (
     <main className="container mx-auto px-4 py-8">
       <CategoryFilter 
+        categories={categories}
         selectedCategory={selectedCategory}
         onCategoryChange={onCategoryChange}
       />
@@ -74,18 +76,16 @@ export const MainContent = ({
       {featuredProducts.length > 0 && (
         <FeaturedSection 
           products={featuredProducts}
-          onAddToWishlist={onAddToWishlist}
-          onRemoveFromWishlist={onRemoveFromWishlist}
           wishlist={wishlist}
+          setWishlist={setWishlist}
         />
       )}
 
       {exclusiveProducts.length > 0 && (
         <ExclusiveDeals 
           products={exclusiveProducts}
-          onAddToWishlist={onAddToWishlist}
-          onRemoveFromWishlist={onRemoveFromWishlist}
           wishlist={wishlist}
+          setWishlist={setWishlist}
         />
       )}
 
@@ -105,9 +105,8 @@ export const MainContent = ({
                 <ProductCard
                   key={product.id}
                   product={product}
-                  onAddToWishlist={onAddToWishlist}
-                  onRemoveFromWishlist={onRemoveFromWishlist}
-                  isInWishlist={wishlist.some(item => item.id === product.id)}
+                  wishlist={wishlist}
+                  setWishlist={setWishlist}
                 />
               ))}
             </div>

@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Plus, Trash2, Code } from "lucide-react";
-import { Product } from "@/pages/Index";
+import { Checkbox } from "@/components/ui/checkbox";
+import { X, Plus, Trash2, Code, Webhook } from "lucide-react";
+import { Product } from "@/types/Product";
 import { toast } from "sonner";
 
 interface AdminPanelProps {
@@ -27,7 +28,9 @@ export const AdminPanel = ({ products, setProducts, onClose }: AdminPanelProps) 
     category: "",
     platform: "amazon" as const,
     featured: false,
-    rating: ""
+    rating: "",
+    isNew: false,
+    isTrending: false
   });
 
   const [showApiInfo, setShowApiInfo] = useState(false);
@@ -47,12 +50,15 @@ export const AdminPanel = ({ products, setProducts, onClose }: AdminPanelProps) 
       platform: formData.platform,
       featured: formData.featured,
       rating: formData.rating ? parseFloat(formData.rating) : undefined,
+      isNew: formData.isNew,
+      isTrending: formData.isTrending,
+      createdAt: new Date().toISOString(),
       discount: formData.originalPrice ? 
         Math.round(((parseFloat(formData.originalPrice) - parseFloat(formData.price)) / parseFloat(formData.originalPrice)) * 100) : 
         undefined
     };
 
-    setProducts([...products, newProduct]);
+    setProducts([newProduct, ...products]);
     
     // Reset form
     setFormData({
@@ -65,7 +71,9 @@ export const AdminPanel = ({ products, setProducts, onClose }: AdminPanelProps) 
       category: "",
       platform: "amazon",
       featured: false,
-      rating: ""
+      rating: "",
+      isNew: false,
+      isTrending: false
     });
 
     toast.success("Product added successfully!");
@@ -76,12 +84,37 @@ export const AdminPanel = ({ products, setProducts, onClose }: AdminPanelProps) 
     toast.success("Product deleted successfully!");
   };
 
+  // Simulate webhook endpoint for automatic product addition
+  const handleWebhookTest = () => {
+    const testProduct = {
+      name: "Auto-Added Test Product",
+      price: 99.99,
+      originalPrice: 149.99,
+      imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
+      description: "This product was automatically added via webhook",
+      affiliateLink: "https://example.com/test",
+      category: "Tech",
+      platform: "amazon" as const,
+      isNew: true
+    };
+
+    const newProduct: Product = {
+      ...testProduct,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      discount: Math.round(((testProduct.originalPrice - testProduct.price) / testProduct.originalPrice) * 100)
+    };
+
+    setProducts([newProduct, ...products]);
+    toast.success("Webhook test successful! Product auto-added.");
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Admin Panel</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h2>
             <Button variant="outline" onClick={onClose}>
               <X size={20} />
             </Button>
@@ -199,6 +232,33 @@ export const AdminPanel = ({ products, setProducts, onClose }: AdminPanelProps) 
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="featured"
+                        checked={formData.featured}
+                        onCheckedChange={(checked) => setFormData({...formData, featured: !!checked})}
+                      />
+                      <Label htmlFor="featured">Featured Product</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="isNew"
+                        checked={formData.isNew}
+                        onCheckedChange={(checked) => setFormData({...formData, isNew: !!checked})}
+                      />
+                      <Label htmlFor="isNew">Mark as New</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="isTrending"
+                        checked={formData.isTrending}
+                        onCheckedChange={(checked) => setFormData({...formData, isTrending: !!checked})}
+                      />
+                      <Label htmlFor="isTrending">Mark as Trending</Label>
+                    </div>
+                  </div>
+
                   <Button type="submit" className="w-full">
                     Add Product
                   </Button>
@@ -206,14 +266,14 @@ export const AdminPanel = ({ products, setProducts, onClose }: AdminPanelProps) 
               </CardContent>
             </Card>
 
-            {/* Product List & API Info */}
+            {/* API Integration & Product List */}
             <div className="space-y-6">
-              {/* API Integration Info */}
+              {/* Webhook Integration */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Code size={20} />
-                    Python API Integration
+                    <Webhook size={20} />
+                    Automatic Product Integration
                     <Button
                       variant="outline"
                       size="sm"
@@ -223,42 +283,84 @@ export const AdminPanel = ({ products, setProducts, onClose }: AdminPanelProps) 
                     </Button>
                   </CardTitle>
                 </CardHeader>
-                {showApiInfo && (
-                  <CardContent>
-                    <div className="space-y-4 text-sm">
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold mb-2">Webhook Endpoint:</h4>
+                      <code className="block bg-gray-100 dark:bg-gray-700 p-2 rounded text-sm">
+                        POST https://your-domain.com/api/products/webhook
+                      </code>
+                    </div>
+                    <Button onClick={handleWebhookTest} className="w-full">
+                      Test Webhook (Add Sample Product)
+                    </Button>
+                  </div>
+                  
+                  {showApiInfo && (
+                    <div className="mt-4 space-y-4 text-sm">
                       <div>
-                        <h4 className="font-semibold mb-2">API Endpoint for Adding Products:</h4>
-                        <code className="block bg-gray-100 p-2 rounded">
-                          POST /api/products
-                        </code>
+                        <h4 className="font-semibold mb-2">Expected JSON Format:</h4>
+                        <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-xs overflow-x-auto">
+{`{
+  "name": "Product Name",
+  "price": 29.99,
+  "originalPrice": 49.99,
+  "imageUrl": "https://example.com/image.jpg",
+  "description": "Product description",
+  "affiliateLink": "https://affiliate-url.com",
+  "category": "Tech",
+  "platform": "amazon",
+  "rating": 4.5,
+  "featured": false,
+  "isNew": true,
+  "isTrending": false
+}`}
+                        </pre>
                       </div>
+                      
                       <div>
                         <h4 className="font-semibold mb-2">Python Script Example:</h4>
-                        <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+                        <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-xs overflow-x-auto">
 {`import requests
+import json
 
-def add_product(product_data):
-    url = "http://localhost:8080/api/products"
-    response = requests.post(url, json=product_data)
+def add_product_via_webhook(product_data):
+    webhook_url = "https://your-domain.com/api/products/webhook"
+    
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer YOUR_API_KEY"
+    }
+    
+    response = requests.post(
+        webhook_url, 
+        headers=headers,
+        json=product_data
+    )
+    
     return response.json()
 
 # Example usage
 product = {
-    "name": "Amazing Gadget",
-    "price": 29.99,
-    "imageUrl": "https://example.com/image.jpg",
-    "description": "Great product",
-    "affiliateLink": "https://amazon.com/...",
-    "category": "Electronics",
-    "platform": "amazon"
+    "name": "Wireless Headphones",
+    "price": 89.99,
+    "originalPrice": 129.99,
+    "imageUrl": "https://example.com/headphones.jpg",
+    "description": "High-quality wireless headphones",
+    "affiliateLink": "https://amazon.com/dp/B123456789?tag=youraffid",
+    "category": "Tech",
+    "platform": "amazon",
+    "rating": 4.5,
+    "isNew": True
 }
 
-add_product(product)`}
+result = add_product_via_webhook(product)
+print(f"Product added: {result}")`}
                         </pre>
                       </div>
                     </div>
-                  </CardContent>
-                )}
+                  )}
+                </CardContent>
               </Card>
 
               {/* Current Products */}
@@ -269,10 +371,14 @@ add_product(product)`}
                 <CardContent>
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {products.map((product) => (
-                      <div key={product.id} className="flex items-center justify-between p-2 border rounded">
+                      <div key={product.id} className="flex items-center justify-between p-3 border rounded bg-gray-50 dark:bg-gray-700">
                         <div className="flex-1">
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-sm text-gray-500">${product.price} - {product.category}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            ${product.price} - {product.category}
+                            {product.isNew && <span className="ml-2 text-purple-600 font-semibold">NEW</span>}
+                            {product.isTrending && <span className="ml-2 text-pink-600 font-semibold">TRENDING</span>}
+                          </p>
                         </div>
                         <Button
                           variant="destructive"

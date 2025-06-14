@@ -341,13 +341,13 @@ const Index = () => {
       setShowAdmin(true);
       return;
     }
-    const password = window.prompt("Enter admin password:");
+    const password = window.prompt("🔐 Admin Access Required - Enter your personal admin password:");
     if (password === ADMIN_PASSWORD) {
       setAdminAuth(true);
       localStorage.setItem(ADMIN_KEY, "true");
       setShowAdmin(true);
     } else if (password !== null) {
-      alert("Incorrect password.");
+      alert("❌ Access denied. This admin panel is restricted.");
     }
   };
 

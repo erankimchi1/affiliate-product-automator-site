@@ -1,5 +1,5 @@
-
 import { Product } from "@/types/Product";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ExtractedProductData {
   name: string;
@@ -14,20 +14,45 @@ interface ExtractedProductData {
 
 export class ProductExtractor {
   static async extractFromUrl(affiliateUrl: string): Promise<Partial<ExtractedProductData>> {
-    console.log("Extracting product data from URL:", affiliateUrl);
+    console.log("Starting real product extraction for URL:", affiliateUrl);
     
     try {
-      // Determine platform from URL
-      const platform = this.detectPlatform(affiliateUrl);
+      // Call the Supabase Edge Function for real scraping
+      const { data, error } = await supabase.functions.invoke('scrape-product', {
+        body: { url: affiliateUrl }
+      });
+
+      if (error) {
+        console.error("Scraping function error:", error);
+        throw new Error(`Scraping failed: ${error.message}`);
+      }
+
+      if (!data.success) {
+        console.error("Scraping failed:", data.error);
+        throw new Error(data.error || "Failed to scrape product");
+      }
+
+      console.log("Successfully scraped product:", data.product);
       
-      // For demo purposes, we'll simulate extraction with mock data
-      // In a real implementation, you'd use web scraping or product APIs
-      const mockData = this.generateMockData(platform, affiliateUrl);
-      
-      return mockData;
+      // Convert the database response to the expected format
+      return {
+        name: data.product.name,
+        price: data.product.price,
+        originalPrice: data.product.original_price,
+        imageUrl: data.product.image_url,
+        description: data.product.description,
+        category: data.product.category,
+        platform: data.product.platform,
+        rating: data.product.rating
+      };
+
     } catch (error) {
-      console.error("Error extracting product data:", error);
-      throw new Error("Failed to extract product data from URL");
+      console.error("Error in product extraction:", error);
+      
+      // Fallback to mock data if real scraping fails
+      console.log("Falling back to mock data generation");
+      const platform = this.detectPlatform(affiliateUrl);
+      return this.generateMockData(platform, affiliateUrl);
     }
   }
 

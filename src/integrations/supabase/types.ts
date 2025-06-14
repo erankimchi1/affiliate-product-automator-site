@@ -9,7 +9,78 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          affiliate_link: string
+          brand: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          discount: number | null
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          is_new: boolean | null
+          is_trending: boolean | null
+          keywords: string[] | null
+          name: string
+          original_price: number | null
+          platform: string
+          price: number
+          price_dropped: boolean | null
+          rating: number | null
+          seo_description: string | null
+          updated_at: string | null
+          views: number | null
+        }
+        Insert: {
+          affiliate_link: string
+          brand?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount?: number | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          is_new?: boolean | null
+          is_trending?: boolean | null
+          keywords?: string[] | null
+          name: string
+          original_price?: number | null
+          platform: string
+          price: number
+          price_dropped?: boolean | null
+          rating?: number | null
+          seo_description?: string | null
+          updated_at?: string | null
+          views?: number | null
+        }
+        Update: {
+          affiliate_link?: string
+          brand?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount?: number | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          is_new?: boolean | null
+          is_trending?: boolean | null
+          keywords?: string[] | null
+          name?: string
+          original_price?: number | null
+          platform?: string
+          price?: number
+          price_dropped?: boolean | null
+          rating?: number | null
+          seo_description?: string | null
+          updated_at?: string | null
+          views?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

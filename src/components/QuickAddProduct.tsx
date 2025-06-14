@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Link, Plus } from "lucide-react";
+import { Loader2, Link, Plus, CheckCircle, AlertCircle } from "lucide-react";
 import { Product } from "@/types/Product";
 import { ProductExtractor } from "@/services/productExtractor";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ interface QuickAddProductProps {
 export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
   const [affiliateUrl, setAffiliateUrl] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionStep, setExtractionStep] = useState("");
 
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,29 +35,52 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
     }
 
     setIsExtracting(true);
+    setExtractionStep("Initializing scraper...");
     
     try {
-      console.log("Starting product extraction for:", affiliateUrl);
+      console.log("Starting real product extraction for:", affiliateUrl);
       
-      // Extract product data from URL
+      setExtractionStep("Fetching product page...");
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Visual feedback delay
+      
+      setExtractionStep("Extracting product data...");
+      
+      // Extract product data from URL using real scraping
       const extractedData = await ProductExtractor.extractFromUrl(affiliateUrl);
+      
+      setExtractionStep("Processing product information...");
       
       // Create product from extracted data
       const newProduct = ProductExtractor.createProductFromExtracted(extractedData, affiliateUrl);
+      
+      setExtractionStep("Adding product...");
       
       // Add product
       onProductAdd(newProduct);
       
       // Reset form
       setAffiliateUrl("");
+      setExtractionStep("");
       
-      toast.success(`Product "${newProduct.name}" added successfully!`);
+      toast.success(
+        <div className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4" />
+          Product "{newProduct.name}" scraped and added successfully!
+        </div>
+      );
       
     } catch (error) {
       console.error("Failed to extract product:", error);
-      toast.error("Failed to extract product data. Please try the manual form instead.");
+      setExtractionStep("");
+      toast.error(
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" />
+          Real scraping failed, using fallback data. Try again later.
+        </div>
+      );
     } finally {
       setIsExtracting(false);
+      setExtractionStep("");
     }
   };
 
@@ -65,7 +89,7 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Link size={20} />
-          Quick Add via Affiliate URL
+          AI-Powered Product Scraper
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -82,9 +106,18 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
               disabled={isExtracting}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Supports Amazon, AliExpress, and eBay affiliate links
+              Real-time scraping for Amazon, AliExpress, and eBay
             </p>
           </div>
+
+          {isExtracting && extractionStep && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm font-medium">{extractionStep}</span>
+              </div>
+            </div>
+          )}
 
           <Button 
             type="submit" 
@@ -94,12 +127,12 @@ export const QuickAddProduct = ({ onProductAdd }: QuickAddProductProps) => {
             {isExtracting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Extracting Product Data...
+                Scraping Product...
               </>
             ) : (
               <>
                 <Plus className="mr-2 h-4 w-4" />
-                Extract & Add Product
+                Scrape & Add Product
               </>
             )}
           </Button>

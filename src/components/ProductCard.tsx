@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +28,7 @@ export const ProductCard = ({
   const [showPriceComparison, setShowPriceComparison] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showSuggested, setShowSuggested] = useState(false);
-  const [urgentDealActive, setUrgentDealActive] = useState(
+  const [urgentDealActive, setUrgentDealActive] = useState<boolean>(
     product.hasUrgentDeal && product.urgentDealExpiry
   );
 
